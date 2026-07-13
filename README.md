@@ -1,85 +1,98 @@
-# Axiom Engine (Beta 0.1)
+# Axiom Engine Mimari ve Modül Spesifikasyon Dokümantasyonu (v0.1)
 
-Axiom Engine, Rust dili ile geliştirilmiş yüksek performanslı, iki ana bileşenden (Studio ve Runtime) oluşan yeni nesil bir oyun motoru ve sahne düzenleyicisidir. Gelişmiş GPU hızlandırması, Özel CSG (Constructive Solid Geometry) altyapısı ve WGPU gücüyle donatılmıştır.
+Bu doküman, Axiom Engine'in dosya hiyerarşisini, modül bağımlılıklarını, bellek düzenlerini, WGPU render boru hatlarını (pipelines) ve CSG (Constructive Solid Geometry) matematik algoritmalarını kaynak kod (source code) seviyesinde incelemektedir. 
 
-## 🚀 Teknolojiler ve Altyapı
-- **Dil:** Rust (Güvenli, hızlı ve bellek dostu)
-- **Grafik API:** `WGPU` (Vulkan, Metal, DX12 gibi modern grafik API'lerine çapraz platform (cross-platform) düşük seviyeli erişim)
-- **Arayüz (GUI):** `egui` ve `eframe` (Geliştirici ortamı olan Studio'nun anında tepki veren panelleri için)
-- **Veri Yönetimi:** `serde` (Oyun dünyası verilerinin JSON olarak işlenip kaydedilmesi)
-- **Matematik & Geometri:** Özel CSG (Katı Cisim Geometrisi) algoritmaları, GPU tabanlı Painter's Algorithm (Ressam Algoritması) derinlik sıralaması.
+Motor, `runtime` (bağımsız oyun çalıştırma ortamı) ve `studio` (egui tabanlı geliştirme editörü) olmak üzere iki monolitik çalışma alanına (workspace) bölünmüştür.
 
 ---
 
-## 📂 Proje Mimarisi ve Dosya Yapısı
+## 1. Dizin Hiyerarşisi ve Modül Ağacı
 
-Proje, temelde **Runtime** (Oyunun son kullanıcıda çalışacağı grafik motoru) ve **Studio** (Oyunun yapıldığı görsel editör) olmak üzere ikiye ayrılır.
-
-### 1. `runtime/` (Çalışma Zamanı Motoru)
-Oyunun derlenmiş son halinin çalıştığı, tamamen WGPU odaklı, pencere yönetimini ve ekran çizimini yapan saf motor kısmıdır.
-* **`src/main.rs`**: Runtime'ın giriş noktasıdır. Konsol ayarlarını yapar, `winit` ile pencereyi oluşturur ve oyun döngüsünü (Event Loop) başlatır.
-* **`src/engine.rs`**: WGPU kullanarak grafik kartı ile iletişime geçer. Ekranın temizlenmesi (clear color), swapchain yönetimi, adapter ve device işlemlerini yürüten ana grafik motorudur.
-* **`src/data_parser.rs`**: Studio'da üretilen `.axiom` veya `.json` uzantılı harita/oyun dosyalarını okuyarak motorun anlayacağı Rust yapılarına (Struct) çevirir.
-
-### 2. `studio/` (Oyun Geliştirme Editörü)
-Oyunun tasarlandığı, haritaların yapıldığı, objelerin düzenlendiği zengin bir masaüstü uygulamasıdır. `egui` kullanır.
-
-#### `studio/src/` Klasörleri ve Dosyaları:
-* **`main.rs` & `lib.rs`**: Editör uygulamasının giriş noktasıdır. Uygulama ayarlarını yapılandırır ve başlatır.
-* **`app.rs`**: Tüm editörün ana durum (state) yöneticisidir. Panelleri, sekmeleri ve genel veri akışını barındırır.
-
-**A. `core/` (Çekirdek İşlemler):**
-* **`events.rs`**: Klavyeden gelen tuş basımları, fare hareketleri gibi kullanıcı girdilerini yakalayan sistemdir.
-* **`interaction.rs`**: Objeleri seçme, sürükleme, boyutlandırma gibi etkileşim mantıklarını yönetir.
-* **`types.rs`**: Editörde genel olarak kullanılan temel veri tiplerini barındırır.
-* **`mod.rs`**: Core klasöründeki dosyaları dışa aktarır.
-
-**B. `data/` (Veri Yapıları):**
-* **`level.rs` & `scene.rs`**: Oyun dünyasının hiyerarşik yapısını (Bölümler ve sahneler) barındıran veri modelleridir.
-* **`layer.rs`**: Sahnelerdeki katman (Z-index veya mantıksal gruplama) sistemini tanımlar.
-* **`object.rs` & `element.rs`**: Oyun dünyasındaki tekil varlıkları (objeler, kapılar, duvarlar vb.) ve onlara ait bileşenleri tanımlar.
-* **`texture.rs` & `texture_presets.rs`**: Kaplama (Materyal) verilerini, renkleri ve ön tanımlı doku ayarlarını barındırır.
-* **`border.rs`**: Arayüz ve objelerdeki sınır/kenarlık hesaplamalarının verisidir.
-* **`settings.rs`**: Studio'nun kullanıcı ayarlarını (karanlık mod, grid boyutu vb.) tutar.
-
-**C. `render/` (Çizim ve Grafik İşleme):**
-* **`gpu.rs`**: Editör içerisindeki en kritik dosyalardan biridir. İşlemciden (CPU) bağımsız olarak WGPU üzerinden doğrudan ekran kartına çizim emirlerini yollayan yüksek performanslı render boru hattıdır.
-* **`shaders/main.wgsl`**: GPU'da çalışan shader (gölgelendirici) kodudur. Objelerin ekrana nasıl yansıtılacağını matematiksel olarak belirler.
-* **`csg.rs`**: (Constructive Solid Geometry) Objelerin birleşimi, kesişimi veya birbirinden çıkarılması gibi karmaşık 3D/2D katı cisim operasyonlarını yapan matematiksel motor.
-* **`canvas.rs`**: Egui içerisinde oyun dünyasının çizildiği ana tuval ekranıdır.
-* **`object_viewport.rs`**: Tek bir objenin detaylı incelendiği 3 boyutlu/2 boyutlu küçük izleme penceresinin çizim kodudur.
-* **`texture_composer.rs`**: Kaplamaların, renklerin ve UV haritalamalarının bir araya getirilip GPU'ya hazır hale getirildiği yerdir.
-
-**D. `ui/` (Kullanıcı Arayüzü - Paneller):**
-* **`explorer.rs`**: Sol taraftaki proje dosyalarını ve sahne hiyerarşisini gösteren dosya gezginidir.
-* **`inspector.rs`**: Sağ taraftaki özellikler panelidir. Seçilen objenin boyutunu, rengini, koordinatlarını değiştirmeyi sağlar.
-* **`level_editor.rs`**: Ana harita tasarım ekranının arayüzüdür.
-* **`object_editor.rs` & `object_editor_cache.rs`**: Bir objenin (örneğin bir duvarın veya karakterin) içine girip onu CSG ve poligon seviyesinde düzenlediğimiz derin editördür. İşlem yükünü azaltmak için önbellekleme (cache) kullanır.
-* **`texture_editor.rs`**: Kaplama ve materyal oluşturma/düzenleme menüsüdür.
-* **`settings_modal.rs`**: Editör ayarları için açılan pencere (Pop-up).
-* **`toolbar.rs`**: Üst kısımdaki kaydetme, oynatma ve araç (seçim, çizim) çubuğudur.
-* **`widgets.rs`**: Editör genelinde kullanılan özel yapım butonlar, slider'lar gibi küçük arayüz bileşenlerini içerir.
-
-### 3. Diğer Klasörler
-* **`data/`**: Deneme amaçlı oyun dosyalarını (örn: `room_01.json`) barındırır.
-* **`analizler/`**: Projenin mimarisi, teknik planlamaları ve gelecekteki refaktör (kod iyileştirme) adımlarının yazılı olduğu Markdown (.md) belgeleridir.
+```text
+axiom/
+├── Cargo.toml                   # Workspace kök yapılandırması
+├── runtime/                     # Çalışma Zamanı (Oyun İstemcisi) Modülü
+│   ├── Cargo.toml               # Runtime bağımlılıkları (winit, wgpu, serde)
+│   └── src/
+│       ├── main.rs              # İstemci başlangıç (entry) noktası
+│       ├── engine.rs            # WGPU EventLoop ve donanım başlatma sekansları
+│       └── data_parser.rs       # Scene/JSON statik bellek deserialization işlemleri
+├── studio/                      # Geliştirici Editörü Modülü
+│   ├── Cargo.toml               # Studio bağımlılıkları (eframe, egui, bytemuck)
+│   └── src/
+│       ├── main.rs / lib.rs     # Uygulama başlatıcısı ve `AxiomStudio` state'i
+│       ├── app.rs               # GUI döngüsü (Update frame) yöneticisi
+│       ├── core/                # Çekirdek girdiler ve durum (state) makinesi
+│       │   ├── events.rs        # Ham I/O event dinleyicileri
+│       │   ├── interaction.rs   # Raycasting, Bounding Box kesişim hesaplamaları
+│       │   └── types.rs         # Ortak veri tipleri (Enumlar ve structlar)
+│       ├── data/                # Serileştirilebilir (Serializable) Bellek Modelleri
+│       │   ├── border.rs        # BorderTemplate ve topoloji verileri
+│       │   ├── element.rs       # UiElement base struct
+│       │   ├── layer.rs         # Render Z-Index katman (Layer) durumu
+│       │   ├── level.rs         # Sahne ağacı (Scene Graph) tepe nodu
+│       │   ├── object.rs        # Tekil Entity/Obje modelleri
+│       │   ├── scene.rs         # Sahne içi hiyerarşi
+│       │   ├── settings.rs      # Studio yapılandırma (config) verileri
+│       │   ├── texture.rs       # UV ve materyal referans verileri
+│       │   └── texture_presets.rs # Ön tanımlı statik kaplama profilleri
+│       ├── render/              # Düşük Seviye WGPU ve Çizim İşlemleri
+│       │   ├── canvas.rs        # Egui üzerindeki ana render pass köprüsü
+│       │   ├── csg.rs           # Matematiksel katı cisim ve BSP bölme algoritmaları
+│       │   ├── gpu.rs           # WGPU custom pipeline ve bind group tanımları
+│       │   ├── object_viewport.rs # Tekil model izleme kamerasının projeksiyonları
+│       │   ├── texture_composer.rs # CPU tabanlı texture blending algoritmaları
+│       │   └── shaders/
+│       │       └── main.wgsl    # Paralel işlemci GPU Vertex/Fragment Gölgelendiricisi
+│       └── ui/                  # Arayüz Panelleri ve Çizim Komutları
+│           ├── explorer.rs      # Scene Graph ağaç dizinleyicisi (TreeView)
+│           ├── inspector.rs     # Obje özellik (Property) mutatörü
+│           ├── level_editor.rs  # Ana seviye tasarım ızgarası (Grid) ve koordinat matrisi
+│           ├── object_editor.rs # CSG yüzey düzenleyicisi
+│           ├── object_editor_cache.rs # CPU darboğazını (bottleneck) engellemek için yüzey önbellekleme
+│           ├── settings_modal.rs # Konfigürasyon I/O paneli
+│           ├── texture_editor.rs # Materyal ve renk uzayı manipülatörü
+│           ├── toolbar.rs       # Yüksek seviye komut (Save/Load/Play) tetikleyicileri
+│           └── widgets.rs       # Egui Custom Widget (Macro) implementasyonları
+└── analizler/                   # Mimarinin ve gelecek eklentilerin yazılı olduğu teknik notlar
+```
 
 ---
 
-## 🛠️ Nasıl Çalıştırılır?
+## 2. Modül Spesifikasyonları
 
-Projeyi geliştirmeye devam etmek veya test etmek için ana dizinde terminalinizi açın:
+### 2.1 Runtime Çekirdeği (`runtime/src/engine.rs`)
+`winit` tabanlı işletim sistemi seviyesi pencere döngüsünü (EventLoop) uygular. 
+* **Başlatma Fazı**: `wgpu::Instance` yapısını `wgpu::Backends::all()` ile başlatır, `RequestAdapterOptions` içerisinden `HighPerformance` profili talep edilir.
+* **Swapchain Konfigürasyonu**: Hardcoded olarak `1280x720` çözünürlüğünde çalışır.
+* **Render Frame**: Her bir donanım karesinde (frame), `CommandEncoder` `LoadOp::Clear` talimatıyla yüzeyi `[0.1, 0.1, 0.1, 1.0]` lineer RGBA değeri ile temizler. Veriler belleğe `StoreOp::Store` üzerinden yazılır.
 
-**Studio (Oyun Editörü) için:**
-```bash
-cd studio
-cargo run --release
-```
+### 2.2 Studio GPU Pipeline (`studio/src/render/gpu.rs`)
+`egui` render hattını (pipeline) delerek doğrudan ekran kartına veri (Draw Call) yollayan `Custom3dCallback` (`egui_wgpu::CallbackTrait`) sistemini barındırır.
+* **Bellek Düzeni (Struct Layout)**: `GpuVertex` `#[repr(C)]` formatındadır. Toplam köşe (vertex) adımı 36 byte'tır (`[f32; 3]` Position (12 byte), `[f32; 2]` UV (8 byte), `[f32; 4]` Color (16 byte)).
+* **Tampon Bellek (Buffer Management)**: `SolidBuffer` ve `LineBuffer` kapasite ihtiyacına göre VRAM üzerinde 2'nin katları şeklinde dinamik olarak büyür (Min: 1024 vertex). Köşeler GPU'ya `queue.write_buffer` kullanılarak sıfır kopyalama (zero-copy) yaklaşımıyla yollanır.
+* **Shader Yapılandırması (`Custom3dPipeline`)**:
+  * **Solid Pipeline**: `TriangleList` topolojisi, `Depth24Plus` derinlik donanımı (write: true, compare: `LessEqual`), Culling kapalı (Back-face render serbest), Alpha Blending aktif.
+  * **Wireframe Pipeline**: `LineList` topolojisi. Derinlik (Depth) yazımı kapalıdır ancak `LessEqual` karşılaştırma aktiftir. CSG objeleriyle çizgilerin `Z-fighting` yapmaması için donanımsal bazda `constant: -2` ve `slope_scale: -1.0` önyargı (Depth Bias) uygulanır.
 
-**Runtime (Oyun Motoru) için:**
-```bash
-cd runtime
-cargo run --release
-```
+### 2.3 Constructive Solid Geometry (`studio/src/render/csg.rs`)
+Motor, BSP (Binary Space Partitioning) yaklaşımına benzeyen özel bir konveks bölme (Convex Splitting) matematik motoruna sahiptir. Gerçek zamanlı katı obje kesişimini (Intersection) ve çıkarılmasını (Subtraction) yönetir.
+* **Düzlem Denklemi (`make_plane`)**: 3 noktadan (v0, v1, v2) kros (cross) vektör çarpımı yapılarak normalize edilmiş yüzey normali (`[nx, ny, nz]`) ve uzaklık (`d`) hesaplanır.
+* **Tolerans Eşiği (`EPSILON`)**: Float (f32) kayıp hatalarını önlemek için kesin tolerans `1e-4` olarak sabitlenmiştir.
+* **Poligon Ayrıştırma (`split_poly`)**: Yüzeydeki noktalar kesme düzleminin normaline göre (+1) Front, (-1) Back ve (0) Coplanar olarak işaretlenir. 
+  * Eşdüzlemlilikte (Coplanar Intersection), objenin kendi normali ile düzlemin normali nokta çarpımına (dot product) sokulur. Eğer sonuç pozitifse ve obje delik objesiyse yüzey imha edilir.
+  * Kesişim noktalarında `t = dist1 / (dist1 - dist2)` formülüyle interpolasyon köşeleri üretilir.
+* **Nokta Birleştirici (Clean Poly)**: Sonsuz dikenli (spike) noktaları ve NaN çökmelerini engellemek için, kesim sonrasında aralarındaki uzaklık karesi `1e-6`'dan küçük olan köşeler otomatik olarak birleştirilir.
 
-*(Not: Performansın akıcı olması ve GPU hızlandırmasının tam verimli çalışması için her zaman `--release` bayrağı ile derlenmesi tavsiye edilir.)*
+### 2.4 Hiyerarşik Veri İşleme (`studio/src/data/`)
+JSON serileştirme işlemleri için `serde` paketleri (macros) kullanılır. `scene.rs` ve `level.rs` veri yapıları, ebeveyn-çocuk (parent-child) ağaç ilişkisini (Tree) simüle eden UUID (String) bazlı kimlik indeksleme sistemleri kullanır. İşlemler render hattında derinlik (Z-index) sırasına sokulmadan önce bu veriler parse edilir.
+
+---
+
+## 3. Derleme (Build) Hedefleri ve Bağımlılıklar
+- `eframe / egui`: GUI sistemi ve State makinesi.
+- `wgpu / winit`: Cross-platform donanım iletişimi, shader derlemesi, pencere döngüsü.
+- `bytemuck`: `GpuVertex` verilerinin (Pod, Zeroable) memory-safe bir şekilde ham byte dizilerine (byte-cast) çevrilerek VRAM'e yazılması.
+- `serde / serde_json`: Bellekteki objelerin sabit disk JSON formuna çevrilmesi (Serialization/Deserialization).
+
+Motorun maksimum kapasite (frame-time, GPU overhead azaltımı) verebilmesi adına tüm geliştirme ve test evrelerinin optimize LLVM bitcode derlemesiyle (`cargo run --release`) başlatılması sistem mimarisinin bir gerekliliğidir.
