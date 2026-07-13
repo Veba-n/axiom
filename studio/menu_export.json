@@ -1,0 +1,988 @@
+{
+  "name": "Ana Menü",
+  "elements": [
+    {
+      "id": "BG_Master",
+      "z_index": -100,
+      "anchor": "Center",
+      "pos_x": 0.0,
+      "pos_y": 0.0,
+      "width": 100.0,
+      "height": 100.0,
+      "parent_id": null,
+      "children": [],
+      "action_binding": "",
+      "layers": [
+        {
+          "id": "BG_Noktalar",
+          "kind": "Fill",
+          "enabled": true,
+          "z_index": 0,
+          "offset_x": 0.0,
+          "offset_y": 0.0,
+          "width": 100.0,
+          "height": 100.0,
+          "fine_offset_x": 0.0,
+          "fine_offset_y": 0.0,
+          "scale_x": 1.0,
+          "scale_y": 1.0,
+          "pattern_spacing": 1,
+          "font_size": 20.0,
+          "font_family": "Monospace",
+          "font_scale": 1.0,
+          "zigzag_x": 0.0,
+          "zigzag_y": 0.0,
+          "shear_x": 0.0,
+          "content": ".",
+          "repeat_content": false,
+          "alpha": 1.0,
+          "fg_color": [
+            40,
+            40,
+            40
+          ],
+          "bg_color": [
+            10,
+            10,
+            15
+          ],
+          "bg_alpha": 1.0,
+          "use_gradient": false,
+          "gradient_target": [
+            0,
+            0,
+            0
+          ],
+          "gradient_dir": "Horizontal",
+          "border": {
+            "top_left": {
+              "pattern": "╔",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_right": {
+              "pattern": "╗",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_left": {
+              "pattern": "╚",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_right": {
+              "pattern": "╝",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "left_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "right_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            }
+          },
+          "extra_borders": [],
+          "padding_x": 0.0,
+          "padding_y": 0.0,
+          "border_composite": false,
+          "composite_spacing_x": 5.0,
+          "composite_spacing_y": 5.0,
+          "text_align": "Center",
+          "text_valign": "Middle",
+          "letter_spacing": 12.0,
+          "line_spacing": 20.0,
+          "wrap_text": false,
+          "text_outline": false,
+          "text_outline_color": [
+            0,
+            0,
+            0
+          ],
+          "text_rotation": 0.0,
+          "is_bold": false,
+          "is_italic": false,
+          "is_underline": false,
+          "is_strikethrough": false,
+          "drop_shadow": false,
+          "shadow_color": [
+            0,
+            0,
+            0
+          ],
+          "shadow_offset_x": 3.0,
+          "shadow_offset_y": 3.0,
+          "animation": "None",
+          "anim_speed": 1.0,
+          "anim_amplitude": 10.0,
+          "hover_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          },
+          "pressed_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "Start_Button",
+      "z_index": 0,
+      "anchor": "TopCenter",
+      "pos_x": 0.0,
+      "pos_y": 10.0,
+      "width": 50.0,
+      "height": 10.0,
+      "parent_id": null,
+      "children": [],
+      "action_binding": "START_GAME",
+      "layers": [
+        {
+          "id": "Arka_Plan",
+          "kind": "Fill",
+          "enabled": true,
+          "z_index": -2,
+          "offset_x": 0.0,
+          "offset_y": 0.0,
+          "width": 100.0,
+          "height": 100.0,
+          "fine_offset_x": 0.0,
+          "fine_offset_y": 0.0,
+          "scale_x": 1.0,
+          "scale_y": 1.0,
+          "pattern_spacing": 1,
+          "font_size": 20.0,
+          "font_family": "Monospace",
+          "font_scale": 1.0,
+          "zigzag_x": 0.0,
+          "zigzag_y": 0.0,
+          "shear_x": 0.0,
+          "content": " ",
+          "repeat_content": false,
+          "alpha": 1.0,
+          "fg_color": [
+            255,
+            200,
+            0
+          ],
+          "bg_color": [
+            30,
+            20,
+            10
+          ],
+          "bg_alpha": 1.0,
+          "use_gradient": false,
+          "gradient_target": [
+            0,
+            0,
+            0
+          ],
+          "gradient_dir": "Horizontal",
+          "border": {
+            "top_left": {
+              "pattern": "╔",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_right": {
+              "pattern": "╗",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_left": {
+              "pattern": "╚",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_right": {
+              "pattern": "╝",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "left_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "right_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            }
+          },
+          "extra_borders": [],
+          "padding_x": 0.0,
+          "padding_y": 0.0,
+          "border_composite": false,
+          "composite_spacing_x": 5.0,
+          "composite_spacing_y": 5.0,
+          "text_align": "Center",
+          "text_valign": "Middle",
+          "letter_spacing": 12.0,
+          "line_spacing": 20.0,
+          "wrap_text": false,
+          "text_outline": false,
+          "text_outline_color": [
+            0,
+            0,
+            0
+          ],
+          "text_rotation": 0.0,
+          "is_bold": false,
+          "is_italic": false,
+          "is_underline": false,
+          "is_strikethrough": false,
+          "drop_shadow": false,
+          "shadow_color": [
+            0,
+            0,
+            0
+          ],
+          "shadow_offset_x": 3.0,
+          "shadow_offset_y": 3.0,
+          "animation": "None",
+          "anim_speed": 1.0,
+          "anim_amplitude": 10.0,
+          "hover_state": {
+            "enabled": true,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              40,
+              40,
+              50
+            ]
+          },
+          "pressed_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          }
+        },
+        {
+          "id": "Kenarlik",
+          "kind": "Border",
+          "enabled": true,
+          "z_index": -1,
+          "offset_x": 0.0,
+          "offset_y": 0.0,
+          "width": 100.0,
+          "height": 100.0,
+          "fine_offset_x": 0.0,
+          "fine_offset_y": 0.0,
+          "scale_x": 1.0,
+          "scale_y": 1.0,
+          "pattern_spacing": 1,
+          "font_size": 20.0,
+          "font_family": "Monospace",
+          "font_scale": 1.0,
+          "zigzag_x": 0.0,
+          "zigzag_y": 0.0,
+          "shear_x": 0.0,
+          "content": "TEXT",
+          "repeat_content": false,
+          "alpha": 1.0,
+          "fg_color": [
+            255,
+            100,
+            50
+          ],
+          "bg_color": [
+            30,
+            20,
+            10
+          ],
+          "bg_alpha": 1.0,
+          "use_gradient": false,
+          "gradient_target": [
+            0,
+            0,
+            0
+          ],
+          "gradient_dir": "Horizontal",
+          "border": {
+            "top_left": {
+              "pattern": "╭",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_right": {
+              "pattern": "╮",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_left": {
+              "pattern": "╰",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_right": {
+              "pattern": "╯",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_pattern": {
+              "pattern": "─",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_pattern": {
+              "pattern": "─",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "left_pattern": {
+              "pattern": "│",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "right_pattern": {
+              "pattern": "│",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            }
+          },
+          "extra_borders": [],
+          "padding_x": 0.0,
+          "padding_y": 0.0,
+          "border_composite": false,
+          "composite_spacing_x": 5.0,
+          "composite_spacing_y": 5.0,
+          "text_align": "Center",
+          "text_valign": "Middle",
+          "letter_spacing": 12.0,
+          "line_spacing": 20.0,
+          "wrap_text": false,
+          "text_outline": false,
+          "text_outline_color": [
+            0,
+            0,
+            0
+          ],
+          "text_rotation": 0.0,
+          "is_bold": false,
+          "is_italic": false,
+          "is_underline": false,
+          "is_strikethrough": false,
+          "drop_shadow": false,
+          "shadow_color": [
+            0,
+            0,
+            0
+          ],
+          "shadow_offset_x": 3.0,
+          "shadow_offset_y": 3.0,
+          "animation": "None",
+          "anim_speed": 1.0,
+          "anim_amplitude": 10.0,
+          "hover_state": {
+            "enabled": true,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              40,
+              40,
+              50
+            ]
+          },
+          "pressed_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          }
+        },
+        {
+          "id": "Metin",
+          "kind": "Text",
+          "enabled": true,
+          "z_index": 0,
+          "offset_x": 0.0,
+          "offset_y": 0.0,
+          "width": 100.0,
+          "height": 100.0,
+          "fine_offset_x": 0.0,
+          "fine_offset_y": 0.0,
+          "scale_x": 1.0,
+          "scale_y": 1.0,
+          "pattern_spacing": 1,
+          "font_size": 20.0,
+          "font_family": "Monospace",
+          "font_scale": 1.0,
+          "zigzag_x": 0.0,
+          "zigzag_y": 0.0,
+          "shear_x": 0.0,
+          "content": "AXIOM ENGINE",
+          "repeat_content": false,
+          "alpha": 1.0,
+          "fg_color": [
+            255,
+            255,
+            255
+          ],
+          "bg_color": [
+            0,
+            0,
+            0
+          ],
+          "bg_alpha": 1.0,
+          "use_gradient": false,
+          "gradient_target": [
+            0,
+            0,
+            0
+          ],
+          "gradient_dir": "Horizontal",
+          "border": {
+            "top_left": {
+              "pattern": "╔",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_right": {
+              "pattern": "╗",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_left": {
+              "pattern": "╚",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_right": {
+              "pattern": "╝",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "left_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "right_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            }
+          },
+          "extra_borders": [],
+          "padding_x": 0.0,
+          "padding_y": 0.0,
+          "border_composite": false,
+          "composite_spacing_x": 5.0,
+          "composite_spacing_y": 5.0,
+          "text_align": "Center",
+          "text_valign": "Middle",
+          "letter_spacing": 12.0,
+          "line_spacing": 20.0,
+          "wrap_text": false,
+          "text_outline": false,
+          "text_outline_color": [
+            0,
+            0,
+            0
+          ],
+          "text_rotation": 0.0,
+          "is_bold": false,
+          "is_italic": false,
+          "is_underline": false,
+          "is_strikethrough": false,
+          "drop_shadow": true,
+          "shadow_color": [
+            0,
+            0,
+            0
+          ],
+          "shadow_offset_x": 3.0,
+          "shadow_offset_y": 3.0,
+          "animation": "PulseColor",
+          "anim_speed": 3.0,
+          "anim_amplitude": 10.0,
+          "hover_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          },
+          "pressed_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          }
+        },
+        {
+          "id": "Yildizlar",
+          "kind": "Text",
+          "enabled": true,
+          "z_index": 0,
+          "offset_x": -10.0,
+          "offset_y": 50.0,
+          "width": 100.0,
+          "height": 100.0,
+          "fine_offset_x": 0.0,
+          "fine_offset_y": 0.0,
+          "scale_x": 1.0,
+          "scale_y": 1.0,
+          "pattern_spacing": 1,
+          "font_size": 20.0,
+          "font_family": "Monospace",
+          "font_scale": 1.0,
+          "zigzag_x": 0.0,
+          "zigzag_y": 0.0,
+          "shear_x": 0.0,
+          "content": "*  *  *  *  *",
+          "repeat_content": false,
+          "alpha": 1.0,
+          "fg_color": [
+            100,
+            255,
+            100
+          ],
+          "bg_color": [
+            0,
+            0,
+            0
+          ],
+          "bg_alpha": 1.0,
+          "use_gradient": false,
+          "gradient_target": [
+            0,
+            0,
+            0
+          ],
+          "gradient_dir": "Horizontal",
+          "border": {
+            "top_left": {
+              "pattern": "╔",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_right": {
+              "pattern": "╗",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_left": {
+              "pattern": "╚",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_right": {
+              "pattern": "╝",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "top_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "bottom_pattern": {
+              "pattern": "═",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "left_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            },
+            "right_pattern": {
+              "pattern": "║",
+              "color_override": false,
+              "fg_color": [
+                255,
+                255,
+                255
+              ],
+              "offset_x": 0.0,
+              "offset_y": 0.0
+            }
+          },
+          "extra_borders": [],
+          "padding_x": 0.0,
+          "padding_y": 0.0,
+          "border_composite": false,
+          "composite_spacing_x": 5.0,
+          "composite_spacing_y": 5.0,
+          "text_align": "Center",
+          "text_valign": "Middle",
+          "letter_spacing": 25.0,
+          "line_spacing": 20.0,
+          "wrap_text": false,
+          "text_outline": false,
+          "text_outline_color": [
+            0,
+            0,
+            0
+          ],
+          "text_rotation": 0.0,
+          "is_bold": false,
+          "is_italic": false,
+          "is_underline": false,
+          "is_strikethrough": false,
+          "drop_shadow": false,
+          "shadow_color": [
+            0,
+            0,
+            0
+          ],
+          "shadow_offset_x": 3.0,
+          "shadow_offset_y": 3.0,
+          "animation": "Wave",
+          "anim_speed": 1.5,
+          "anim_amplitude": 10.0,
+          "hover_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          },
+          "pressed_state": {
+            "enabled": false,
+            "fg_color": [
+              255,
+              255,
+              255
+            ],
+            "bg_color": [
+              50,
+              50,
+              50
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

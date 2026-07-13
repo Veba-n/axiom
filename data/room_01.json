@@ -1,0 +1,29 @@
+{
+    "room": {
+        "id": "start_dungeon_01",
+        "name": "Karanlık Mahzen",
+        "dimensions": {
+            "width": 16,
+            "length": 16,
+            "height": 8
+        }
+    },
+    "lighting": {
+        "ambient": 0.1,
+        "player_fov": 60.0,
+        "flashlight_range": 5.0
+    },
+    "player_start": {
+        "x": 8.0,
+        "y": 8.0,
+        "angle": 0.0
+    },
+    "objects": [
+        {
+            "type": "wooden_chest",
+            "x": 4.0,
+            "y": 2.0,
+            "z": 0.0
+        }
+    ]
+}
