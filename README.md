@@ -1,122 +1,85 @@
-# AXIOM ENGINE - TEKNİK MİMARİ VE GELİŞTİRME DOKÜMANTASYONU (v0.1.0)
+# Axiom Engine (Beta 0.1)
 
-## 1. Vizyon ve Felsefe
-Axiom Engine; 3 boyutlu, voxel tabanlı ve ışın izleme (Raycasting/Raymarching) matematiği ile çalışan bir terminal/konsol RPG oyun motorudur. 
-Geleneksel oyun motorlarının aksine, CPU üzerindeki spagetti kodlar yerine GPU (wgpu/WebGPU) kullanılarak matematiksel formüllerin ASCII/Piksel dokulara dönüştürüldüğü iki parçalı bir mimariye sahiptir.
+Axiom Engine, Rust dili ile geliştirilmiş yüksek performanslı, iki ana bileşenden (Studio ve Runtime) oluşan yeni nesil bir oyun motoru ve sahne düzenleyicisidir. Gelişmiş GPU hızlandırması, Özel CSG (Constructive Solid Geometry) altyapısı ve WGPU gücüyle donatılmıştır.
 
-## 2. Sistem Mimarisi (İki Uygulamalı Yapı)
-
-Axiom Engine, profesyonel oyun sektöründeki standartlara uygun olarak iki ana modülden oluşur:
-
-### A. Axiom Studio (Editör)
-* **Görev:** Dünyayı, odaları, voxel nesneleri (masa, kasa, duvar) ve ışıklandırmaları (fener kapsamı vb.) tasarlamak.
-* **Teknoloji:** TypeScript, JSON, Web ortamı (veya Electron/Tauri).
-* **Çıktı:** Oyun motorunun okuyacağı saf JSON yapılandırma dosyaları (`.axiom` veya `.json` uzantılı dünya verileri).
-
-### B. Axiom Runtime (Çekirdek Motor)
-* **Görev:** Studio'dan gelen veriyi okuyup, GPU üzerinde 720p çözünürlükte 60 FPS ile render eden ve oyuncu girdilerini (W-A-S-D, Envanter, Seçimler) işleyen oyunun kendisi.
-* **Teknoloji:** Rust, `wgpu` (WebGPU API), GLSL/WGSL (Shader dili).
-* **Çıktı:** Matematiksel olarak hesaplanmış, gölgelendirilmiş ASCII 3D dünyası.
+## 🚀 Teknolojiler ve Altyapı
+- **Dil:** Rust (Güvenli, hızlı ve bellek dostu)
+- **Grafik API:** `WGPU` (Vulkan, Metal, DX12 gibi modern grafik API'lerine çapraz platform (cross-platform) düşük seviyeli erişim)
+- **Arayüz (GUI):** `egui` ve `eframe` (Geliştirici ortamı olan Studio'nun anında tepki veren panelleri için)
+- **Veri Yönetimi:** `serde` (Oyun dünyası verilerinin JSON olarak işlenip kaydedilmesi)
+- **Matematik & Geometri:** Özel CSG (Katı Cisim Geometrisi) algoritmaları, GPU tabanlı Painter's Algorithm (Ressam Algoritması) derinlik sıralaması.
 
 ---
 
-## 3. Başlangıç Klasör Hiyerarşisi
+## 📂 Proje Mimarisi ve Dosya Yapısı
 
-Projeyi Windows PowerShell ortamında başlatmak için Workspace (Çalışma Alanı) yapısı kullanılacaktır.
+Proje, temelde **Runtime** (Oyunun son kullanıcıda çalışacağı grafik motoru) ve **Studio** (Oyunun yapıldığı görsel editör) olmak üzere ikiye ayrılır.
 
-```powershell
-# PowerShell üzerinden ana klasörü ve alt projeleri oluşturmak için:
-New-Item -ItemType Directory -Name "AxiomEngine"
-cd AxiomEngine
-cargo new runtime --bin
-mkdir studio
+### 1. `runtime/` (Çalışma Zamanı Motoru)
+Oyunun derlenmiş son halinin çalıştığı, tamamen WGPU odaklı, pencere yönetimini ve ekran çizimini yapan saf motor kısmıdır.
+* **`src/main.rs`**: Runtime'ın giriş noktasıdır. Konsol ayarlarını yapar, `winit` ile pencereyi oluşturur ve oyun döngüsünü (Event Loop) başlatır.
+* **`src/engine.rs`**: WGPU kullanarak grafik kartı ile iletişime geçer. Ekranın temizlenmesi (clear color), swapchain yönetimi, adapter ve device işlemlerini yürüten ana grafik motorudur.
+* **`src/data_parser.rs`**: Studio'da üretilen `.axiom` veya `.json` uzantılı harita/oyun dosyalarını okuyarak motorun anlayacağı Rust yapılarına (Struct) çevirir.
+
+### 2. `studio/` (Oyun Geliştirme Editörü)
+Oyunun tasarlandığı, haritaların yapıldığı, objelerin düzenlendiği zengin bir masaüstü uygulamasıdır. `egui` kullanır.
+
+#### `studio/src/` Klasörleri ve Dosyaları:
+* **`main.rs` & `lib.rs`**: Editör uygulamasının giriş noktasıdır. Uygulama ayarlarını yapılandırır ve başlatır.
+* **`app.rs`**: Tüm editörün ana durum (state) yöneticisidir. Panelleri, sekmeleri ve genel veri akışını barındırır.
+
+**A. `core/` (Çekirdek İşlemler):**
+* **`events.rs`**: Klavyeden gelen tuş basımları, fare hareketleri gibi kullanıcı girdilerini yakalayan sistemdir.
+* **`interaction.rs`**: Objeleri seçme, sürükleme, boyutlandırma gibi etkileşim mantıklarını yönetir.
+* **`types.rs`**: Editörde genel olarak kullanılan temel veri tiplerini barındırır.
+* **`mod.rs`**: Core klasöründeki dosyaları dışa aktarır.
+
+**B. `data/` (Veri Yapıları):**
+* **`level.rs` & `scene.rs`**: Oyun dünyasının hiyerarşik yapısını (Bölümler ve sahneler) barındıran veri modelleridir.
+* **`layer.rs`**: Sahnelerdeki katman (Z-index veya mantıksal gruplama) sistemini tanımlar.
+* **`object.rs` & `element.rs`**: Oyun dünyasındaki tekil varlıkları (objeler, kapılar, duvarlar vb.) ve onlara ait bileşenleri tanımlar.
+* **`texture.rs` & `texture_presets.rs`**: Kaplama (Materyal) verilerini, renkleri ve ön tanımlı doku ayarlarını barındırır.
+* **`border.rs`**: Arayüz ve objelerdeki sınır/kenarlık hesaplamalarının verisidir.
+* **`settings.rs`**: Studio'nun kullanıcı ayarlarını (karanlık mod, grid boyutu vb.) tutar.
+
+**C. `render/` (Çizim ve Grafik İşleme):**
+* **`gpu.rs`**: Editör içerisindeki en kritik dosyalardan biridir. İşlemciden (CPU) bağımsız olarak WGPU üzerinden doğrudan ekran kartına çizim emirlerini yollayan yüksek performanslı render boru hattıdır.
+* **`shaders/main.wgsl`**: GPU'da çalışan shader (gölgelendirici) kodudur. Objelerin ekrana nasıl yansıtılacağını matematiksel olarak belirler.
+* **`csg.rs`**: (Constructive Solid Geometry) Objelerin birleşimi, kesişimi veya birbirinden çıkarılması gibi karmaşık 3D/2D katı cisim operasyonlarını yapan matematiksel motor.
+* **`canvas.rs`**: Egui içerisinde oyun dünyasının çizildiği ana tuval ekranıdır.
+* **`object_viewport.rs`**: Tek bir objenin detaylı incelendiği 3 boyutlu/2 boyutlu küçük izleme penceresinin çizim kodudur.
+* **`texture_composer.rs`**: Kaplamaların, renklerin ve UV haritalamalarının bir araya getirilip GPU'ya hazır hale getirildiği yerdir.
+
+**D. `ui/` (Kullanıcı Arayüzü - Paneller):**
+* **`explorer.rs`**: Sol taraftaki proje dosyalarını ve sahne hiyerarşisini gösteren dosya gezginidir.
+* **`inspector.rs`**: Sağ taraftaki özellikler panelidir. Seçilen objenin boyutunu, rengini, koordinatlarını değiştirmeyi sağlar.
+* **`level_editor.rs`**: Ana harita tasarım ekranının arayüzüdür.
+* **`object_editor.rs` & `object_editor_cache.rs`**: Bir objenin (örneğin bir duvarın veya karakterin) içine girip onu CSG ve poligon seviyesinde düzenlediğimiz derin editördür. İşlem yükünü azaltmak için önbellekleme (cache) kullanır.
+* **`texture_editor.rs`**: Kaplama ve materyal oluşturma/düzenleme menüsüdür.
+* **`settings_modal.rs`**: Editör ayarları için açılan pencere (Pop-up).
+* **`toolbar.rs`**: Üst kısımdaki kaydetme, oynatma ve araç (seçim, çizim) çubuğudur.
+* **`widgets.rs`**: Editör genelinde kullanılan özel yapım butonlar, slider'lar gibi küçük arayüz bileşenlerini içerir.
+
+### 3. Diğer Klasörler
+* **`data/`**: Deneme amaçlı oyun dosyalarını (örn: `room_01.json`) barındırır.
+* **`analizler/`**: Projenin mimarisi, teknik planlamaları ve gelecekteki refaktör (kod iyileştirme) adımlarının yazılı olduğu Markdown (.md) belgeleridir.
+
+---
+
+## 🛠️ Nasıl Çalıştırılır?
+
+Projeyi geliştirmeye devam etmek veya test etmek için ana dizinde terminalinizi açın:
+
+**Studio (Oyun Editörü) için:**
+```bash
+cd studio
+cargo run --release
 ```
 
-**Klasör Ağacı:**
-
-```text
-AxiomEngine/
-├── studio/                 # TypeScript Editör Uygulaması
-│   ├── package.json
-│   ├── src/
-│   │   ├── ui/             # Menüler ve 3D Grid Arayüzü
-│   │   └── exporter.ts     # JSON çıktı alma sistemi
-│   └── public/
-├── runtime/                # Rust Oyun Motoru
-│   ├── Cargo.toml
-│   ├── src/
-│   │   ├── main.rs         # Giriş noktası ve CLI menüsü
-│   │   ├── engine/         # wgpu render mekanikleri
-│   │   └── data_parser.rs  # JSON okuyucu
-│   └── shaders/
-│       └── raycaster.wgsl  # GPU matematik formülleri
-└── data/                   # İki uygulamanın konuştuğu ortak veri
-    ├── materials.json
-    └── room_01.json
+**Runtime (Oyun Motoru) için:**
+```bash
+cd runtime
+cargo run --release
 ```
 
----
-
-## 4. Ortak Veri Şeması (Data Schema)
-
-Motorun ve editörün birbiriyle iletişim kurduğu veri standartlarıdır. Başlangıç aşamasında sistem bu JSON dosyasını okuyarak ekranı çizer.
-
-**`data/room_01.json`:**
-
-```json
-{
-  "room": {
-    "id": "start_dungeon_01",
-    "name": "Karanlık Mahzen",
-    "dimensions": { "width": 16, "length": 16, "height": 8 }
-  },
-  "lighting": {
-    "ambient": 0.1,
-    "player_fov": 60.0,
-    "flashlight_range": 5.0
-  },
-  "player_start": { "x": 8.0, "y": 8.0, "angle": 0.0 },
-  "objects": [
-    { "type": "wooden_chest", "x": 4.0, "y": 2.0, "z": 0.0 }
-  ]
-}
-```
-
----
-
-## 5. Adım Adım Geliştirme Planı (Faz 1)
-
-### Aşama 1.1: Runtime Terminal Menüleri (İlk Kodlanacak Kısım)
-
-Rust `runtime` uygulaması PowerShell'den çalıştırıldığında doğrudan 3D ekranı açmaz. Önce bir "Yönetim/Giriş Menüsü" (CLI) sunar.
-
-**Tasarlanacak Akış:**
-
-1. Ekran temizlenir (`Clear-Host` mantığı).
-2. Ekrana ASCII Axiom Logosu basılır.
-3. Kullanıcıya seçenekler sunulur:
-* `[1] Oyunu Başlat (Oda Verisini Yükle)`
-* `[2] Geliştirici Modu (Debug & Render Ayarları)`
-* `[3] Çıkış`
-
-4. Kullanıcı 1'e basarsa `data/room_01.json` dosyası parse edilir ve `wgpu` penceresi tetiklenir.
-
-### Aşama 1.2: Studio Menüleri (Editör Arayüzü)
-
-TypeScript tarafında geliştirilecek ilk ekranlar:
-
-1. **Oluşturma Ekranı (New Project):** Oda genişliği, yüksekliği ve ortam ışığı değerlerinin girildiği basit formlar.
-2. **Voxel Grid Paneli:** Sol tarafta malzemelerin (Halı, Tuğla, Paslı Metal), sağ tarafta 2D bir ızgaranın olduğu, tıklayarak duvarların çizilebildiği ekran.
-3. **Export Paneli:** Yapılan tasarımı JSON olarak `AxiomEngine/data/` klasörüne kaydeden fonksiyon.
-
-### Aşama 1.3: İlk GPU Çıktısı (Raycasting V0)
-
-Editörden alınan JSON verisi Rust tarafına geçer. `wgpu` boş bir pencere açar ve Shader kodu, sadece odanın dış sınırlarını (16x16) matematiksel mesafe ölçümüyle ekrana gri tonlamalı bloklar halinde çizer.
-
----
-
-## 6. Teknik Standartlar ve Kurallar
-
-* **Paralel İşleme:** Ağır hesaplamaların tamamı (Raycasting, FOV, Collision) Rust içinde GPU'ya (WGSL) devredilecektir.
-* **Modülerlik:** Hiçbir eşya hard-coded (koda gömülü) olmayacaktır. Her şey TypeScript editöründen JSON olarak beslenecektir.
-* **Performans Hedefi:** CPU yükü %10'u geçmeyecek, render işlemlerinin %90'ı wgpu üzerinden donanımsal hızlandırma ile çözülecektir.
+*(Not: Performansın akıcı olması ve GPU hızlandırmasının tam verimli çalışması için her zaman `--release` bayrağı ile derlenmesi tavsiye edilir.)*
