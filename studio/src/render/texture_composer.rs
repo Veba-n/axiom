@@ -46,7 +46,8 @@ impl ComposedTexture {
 /// sonucu döner.
 #[derive(Default)]
 pub struct TextureCache {
-    entries: HashMap<String, (AxiomTexture, ComposedTexture, Option<egui::TextureHandle>)>,
+    pub entries: HashMap<String, (AxiomTexture, ComposedTexture, Option<egui::TextureHandle>)>,
+    pub upload_queue: Vec<(String, egui::ColorImage)>,
 }
 
 pub fn bake_texture_to_image(ctx: &egui::Context, comp: &ComposedTexture) -> egui::ColorImage {
@@ -124,7 +125,7 @@ pub fn bake_texture_to_image(ctx: &egui::Context, comp: &ComposedTexture) -> egu
 
 impl TextureCache {
     pub fn new() -> Self {
-        Self { entries: HashMap::new() }
+        Self { entries: HashMap::new(), upload_queue: Vec::new() }
     }
 
     pub fn apply_3d_transform(&mut self, texture_id: &str, _rotation: [f32; 3], scale: [f32; 3]) {
@@ -156,6 +157,10 @@ impl TextureCache {
             
             // Texture'ı piksellere fırınla ve GPU belleğine at!
             let image = bake_texture_to_image(ctx, &comp);
+            
+            // GPU'ya yüklenmesi için kuyruğa ekle
+            self.upload_queue.push((texture.id.clone(), image.clone()));
+            
             let handle = ctx.load_texture(
                 format!("tex_{}", texture.id),
                 image,

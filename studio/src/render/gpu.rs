@@ -42,10 +42,18 @@ pub struct CameraUniform {
     pub view_proj: [[f32; 4]; 4],
 }
 
+#[derive(Clone, Debug)]
+pub struct TexturedBatch {
+    pub texture_id: String,
+    pub range: std::ops::Range<u32>,
+}
+
 pub struct Custom3dCallback {
     pub solid_vertices: Vec<GpuVertex>,
+    pub textured_batches: Vec<TexturedBatch>, // Doku grupları
     pub line_vertices: Vec<GpuVertex>,
     pub camera_matrix: [[f32; 4]; 4],
+    pub textures_to_update: Vec<(String, egui::ColorImage)>, // Yeni veya güncellenen dokular
 }
 
 impl eframe::egui_wgpu::CallbackTrait for Custom3dCallback {
@@ -58,6 +66,31 @@ impl eframe::egui_wgpu::CallbackTrait for Custom3dCallback {
         resources: &mut eframe::egui_wgpu::CallbackResources,
     ) -> Vec<wgpu::CommandBuffer> {
         use wgpu::util::DeviceExt;
+        
+        // --- TEXTURE MANAGER ---
+        let mut create_fallback = false;
+        if resources.get::<TextureManager>().is_none() {
+            create_fallback = true;
+        }
+        if create_fallback {
+            let mut manager = TextureManager::default();
+            if let Some(pipeline) = resources.get::<Custom3dPipeline>() {
+                manager.update_texture(device, queue, "fallback", &egui::ColorImage::new([1, 1], egui::Color32::WHITE), &pipeline.texture_bind_group_layout);
+            }
+            resources.insert(manager);
+        }
+        
+        if !self.textures_to_update.is_empty() {
+            if let Some(mut manager) = resources.remove::<TextureManager>() {
+                if let Some(pipeline) = resources.get::<Custom3dPipeline>() {
+                    for (id, img) in &self.textures_to_update {
+                        manager.update_texture(device, queue, id, img, &pipeline.texture_bind_group_layout);
+                    }
+                }
+                resources.insert(manager);
+            }
+        }
+
         
         let solid_len = self.solid_vertices.len();
         let solid_bytes = bytemuck::cast_slice(&self.solid_vertices);
@@ -149,7 +182,20 @@ impl eframe::egui_wgpu::CallbackTrait for Custom3dCallback {
                         render_pass.set_pipeline(&custom_pipeline.solid_pipeline);
                         render_pass.set_bind_group(0, &camera_bg.group, &[]);
                         render_pass.set_vertex_buffer(0, solid.buffer.slice(..));
-                        render_pass.draw(0..self.solid_vertices.len() as u32, 0..1);
+                        
+                        let manager = resources.get::<TextureManager>().unwrap();
+                        let fallback = manager.bind_groups.get("fallback").unwrap();
+                        
+                        if self.textured_batches.is_empty() {
+                            render_pass.set_bind_group(1, fallback, &[]);
+                            render_pass.draw(0..self.solid_vertices.len() as u32, 0..1);
+                        } else {
+                            for batch in &self.textured_batches {
+                                let bind_group = manager.bind_groups.get(&batch.texture_id).unwrap_or(fallback);
+                                render_pass.set_bind_group(1, bind_group, &[]);
+                                render_pass.draw(batch.range.clone(), 0..1);
+                            }
+                        }
                     }
                 }
                 if let Some(line) = resources.get::<LineBuffer>() {
@@ -157,6 +203,11 @@ impl eframe::egui_wgpu::CallbackTrait for Custom3dCallback {
                         render_pass.set_pipeline(&custom_pipeline.line_pipeline);
                         render_pass.set_bind_group(0, &camera_bg.group, &[]);
                         render_pass.set_vertex_buffer(0, line.buffer.slice(..));
+                        
+                        let manager = resources.get::<TextureManager>().unwrap();
+                        let fallback = manager.bind_groups.get("fallback").unwrap();
+                        render_pass.set_bind_group(1, fallback, &[]); // Çizgiler texturesiz (beyaz)
+                        
                         render_pass.draw(0..self.line_vertices.len() as u32, 0..1);
                     }
                 }
@@ -170,10 +221,71 @@ struct LineBuffer { buffer: wgpu::Buffer, capacity: usize }
 struct CameraBuffer { buffer: wgpu::Buffer }
 struct CameraBindGroup { group: wgpu::BindGroup }
 
+#[derive(Default)]
+struct TextureManager {
+    bind_groups: std::collections::HashMap<String, wgpu::BindGroup>,
+}
+
+impl TextureManager {
+    fn update_texture(
+        &mut self, 
+        device: &wgpu::Device, 
+        queue: &wgpu::Queue, 
+        id: &str, 
+        img: &egui::ColorImage,
+        layout: &wgpu::BindGroupLayout,
+    ) {
+        let size = wgpu::Extent3d {
+                width: img.width() as u32,
+                height: img.height() as u32,
+                depth_or_array_layers: 1,
+            };
+            let texture = device.create_texture(&wgpu::TextureDescriptor {
+                label: Some(id),
+                size,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
+            });
+            let pixels: Vec<u8> = img.pixels.iter().flat_map(|c| [c.r(), c.g(), c.b(), c.a()]).collect();
+            queue.write_texture(
+                wgpu::ImageCopyTexture { texture: &texture, mip_level: 0, origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+                &pixels,
+                wgpu::ImageDataLayout { offset: 0, bytes_per_row: Some(4 * size.width), rows_per_image: Some(size.height) },
+                size,
+            );
+            
+            let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+                address_mode_u: wgpu::AddressMode::Repeat,
+                address_mode_v: wgpu::AddressMode::Repeat,
+                address_mode_w: wgpu::AddressMode::Repeat,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Linear,
+                ..Default::default()
+            });
+            
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout,
+                entries: &[
+                    wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view) },
+                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&sampler) },
+                ],
+                label: Some(id),
+            });
+            self.bind_groups.insert(id.to_string(), bind_group);
+    }
+}
+
 pub struct Custom3dPipeline {
     pub solid_pipeline: wgpu::RenderPipeline,
     pub line_pipeline: wgpu::RenderPipeline,
     pub camera_bind_group_layout: wgpu::BindGroupLayout,
+    pub texture_bind_group_layout: wgpu::BindGroupLayout,
 }
 
 impl Custom3dPipeline {
@@ -188,20 +300,34 @@ impl Custom3dPipeline {
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
+                    ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
                     count: None,
                 }
             ],
             label: Some("camera_bind_group_layout"),
         });
 
+        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture { multisampled: false, view_dimension: wgpu::TextureViewDimension::D2, sample_type: wgpu::TextureSampleType::Float { filterable: true } },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Axiom Pipeline Layout"),
-            bind_group_layouts: &[&camera_bind_group_layout],
+            bind_group_layouts: &[&camera_bind_group_layout, &texture_bind_group_layout],
             push_constant_ranges: &[],
         });
 
@@ -265,6 +391,6 @@ impl Custom3dPipeline {
             multiview: None,
         });
 
-        Self { solid_pipeline, line_pipeline, camera_bind_group_layout }
+        Self { solid_pipeline, line_pipeline, camera_bind_group_layout, texture_bind_group_layout }
     }
 }

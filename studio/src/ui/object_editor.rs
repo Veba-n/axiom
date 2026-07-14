@@ -1265,7 +1265,7 @@ let mut all_faces = Vec::new();
             let _iso = app.camera_ortho;
             let _cx_rad = if _iso { 30.0_f32.to_radians() } else { cam_rot_x.to_radians() };
             let _cy_rad = if _iso { 45.0_f32.to_radians() } else { cam_rot_y.to_radians() };
-            let view_dir: [f32; 3] = [
+            let _view_dir: [f32; 3] = [
                 -_cy_rad.sin() * _cx_rad.cos(),
                 _cx_rad.sin(),
                 _cy_rad.cos() * _cx_rad.cos(),
@@ -1908,7 +1908,11 @@ let mut all_faces = Vec::new();
         }
         
         let mut solid_vertices = Vec::with_capacity(all_faces.len() * 6);
+        let mut textured_batches = Vec::new();
         let mut line_vertices = Vec::with_capacity(all_faces.len() * 8);
+        
+        let mut current_texture = String::new();
+        let mut batch_start = 0;
         for face in &all_faces {
             if face.poly_3d.len() >= 3 {
                 // Dinamik Renk ve Materyal Çözümleme
@@ -1929,9 +1933,12 @@ let mut all_faces = Vec::new();
                         let has_texture = !mat.texture_id.is_empty() && tex_cache.get(&mat.texture_id).is_some();
                         
                         if has_texture {
-                            let comp = tex_cache.get(&mat.texture_id).unwrap();
-                            let c = comp.base_color;
-                            [c[0] as f32 / 255.0, c[1] as f32 / 255.0, c[2] as f32 / 255.0, mat.opacity]
+                            // Doku varsa in.color olarak BEYAZ veriyoruz!
+                            // Çünkü TextureComposer zaten arka plan rengini ColorImage içine gömdü (bake etti).
+                            // Eğer burada comp.base_color verirsek, Shader içinde (tex_color * in.color) 
+                            // işlemi iki kez renk çarpımı (kare alma) yapar. Özellikle siyah arka planlarda
+                            // sonuç PITCH BLACK (Simsiyah) çıkar!
+                            [1.0, 1.0, 1.0, mat.opacity]
                         } else {
                             if mat.use_custom_bg {
                                 [bg[0] as f32 / 255.0, bg[1] as f32 / 255.0, bg[2] as f32 / 255.0, mat.opacity]
@@ -1962,7 +1969,55 @@ let mut all_faces = Vec::new();
                 
                 // --- 1. KATI ÇİZİM (Sadece Solid/Textured objeler için üçgenleştirme) ---
                 if !matches!(face.shading, ShadingMode::Wireframe) && !debug_wireframe_only {
-                    let triangles = face.triangles;
+                    let mat = crate::render::object_viewport::resolve_face_material(face.part, face.face_id);
+                    let default_mat = crate::data::object::FaceMaterial::default();
+                    let mat = mat.unwrap_or(&default_mat);
+                    
+                    let has_texture = !mat.texture_id.is_empty() && app.texture_cache.entries.get(&mat.texture_id).is_some();
+                    let new_texture = if has_texture && !show_outer_shell { mat.texture_id.clone() } else { "fallback".to_string() };
+                    
+                    if new_texture != current_texture {
+                        if solid_vertices.len() as u32 > batch_start {
+                            textured_batches.push(crate::render::gpu::TexturedBatch {
+                                texture_id: current_texture.clone(),
+                                range: batch_start..solid_vertices.len() as u32,
+                            });
+                        }
+                        current_texture = new_texture;
+                        batch_start = solid_vertices.len() as u32;
+                    }
+
+                    // 3D Dünya Uzayında (World Space) Planar UV Mapping
+                    let mut w0 = [0.0; 3];
+                    let mut vec_x = [1.0, 0.0, 0.0];
+                    let mut vec_y = [0.0, 1.0, 0.0];
+                    let mut len_x_sq = 1.0;
+                    let mut len_y_sq = 1.0;
+
+                    if let Some(orig) = &face.original_3d {
+                        if orig.len() >= 3 {
+                            w0 = orig[0];
+                            let w1 = orig[1];
+                            let w_last = *orig.last().unwrap();
+                            vec_x = [w1[0]-w0[0], w1[1]-w0[1], w1[2]-w0[2]];
+                            vec_y = [w_last[0]-w0[0], w_last[1]-w0[1], w_last[2]-w0[2]];
+                            len_x_sq = vec_x[0]*vec_x[0] + vec_x[1]*vec_x[1] + vec_x[2]*vec_x[2];
+                            len_y_sq = vec_y[0]*vec_y[0] + vec_y[1]*vec_y[1] + vec_y[2]*vec_y[2];
+                            if len_x_sq < 1e-5 { len_x_sq = 1.0; }
+                            if len_y_sq < 1e-5 { len_y_sq = 1.0; }
+                        }
+                    }
+                    
+                    let uv_scale_x = mat.uv_scale[0];
+                    let uv_scale_y = mat.uv_scale[1];
+                    let calc_uv = |pos: [f32; 3]| -> [f32; 2] {
+                        let p_vec = [pos[0]-w0[0], pos[1]-w0[1], pos[2]-w0[2]];
+                        let u = (p_vec[0]*vec_x[0] + p_vec[1]*vec_x[1] + p_vec[2]*vec_x[2]) / len_x_sq;
+                        let v = (p_vec[0]*vec_y[0] + p_vec[1]*vec_y[1] + p_vec[2]*vec_y[2]) / len_y_sq;
+                        [mat.uv_offset[0] + u * uv_scale_x, mat.uv_offset[1] + v * uv_scale_y]
+                    };
+
+                    let triangles = &face.triangles;
                     for i in (0..triangles.len()).step_by(3) {
                         if i + 2 < triangles.len() {
                             let idx0 = triangles[i];
@@ -1973,9 +2028,9 @@ let mut all_faces = Vec::new();
                             let v1 = face.poly_3d[idx1];
                             let v2 = face.poly_3d[idx2];
                             
-                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v0, uv: [0.0, 0.0], color });
-                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v1, uv: [1.0, 0.0], color });
-                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v2, uv: [1.0, 1.0], color });
+                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v0, uv: calc_uv(v0), color });
+                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v1, uv: calc_uv(v1), color });
+                            solid_vertices.push(crate::render::gpu::GpuVertex { position: v2, uv: calc_uv(v2), color });
                             
                             if show_gpu_triangles {
                                 let tri_color = [1.0, 1.0, 0.0, 0.8]; // Sarı üçgen çizgileri
@@ -2017,6 +2072,14 @@ let mut all_faces = Vec::new();
                 }
             }
         }
+        
+        // Kalan son batch'i ekle
+        if solid_vertices.len() as u32 > batch_start {
+            textured_batches.push(crate::render::gpu::TexturedBatch {
+                texture_id: current_texture,
+                range: batch_start..solid_vertices.len() as u32,
+            });
+        }
 
         // KUSURSUZ EŞLEŞME: CPU zaten pikselleri (screen_poly) hesapladı!
         // Egui-wgpu, viewport'u response.rect'in fiziksel piksel alanına ayarlıyor.
@@ -2045,8 +2108,15 @@ let mut all_faces = Vec::new();
         // Ekran kartına komut verecek olan Orijinal Callback nesnemizi yaratıyoruz
         let custom_callback = crate::render::gpu::Custom3dCallback {
             solid_vertices,
+            textured_batches,
             line_vertices,
             camera_matrix,
+            textures_to_update: {
+                // upload_queue'yu al ve boşalt
+                let mut q = Vec::new();
+                std::mem::swap(&mut q, &mut app.texture_cache.upload_queue);
+                q
+            },
         };
 
         // Egui_wgpu, PaintCallback objesini ve Arc sarmalamasını kendisi yapar!
@@ -2140,8 +2210,8 @@ let mut all_faces = Vec::new();
             }
 
             if debug_labels {
-                let text = format!("P:{} | F:{}", face.part_index, face.face_id);
-                let label_pos = center_screen - egui::vec2(0.0, 15.0);
+                let _text = format!("P:{} | F:{}", face.part_index, face.face_id);
+                let _label_pos = center_screen - egui::vec2(0.0, 15.0);
                 // Draw label in the post-pass instead
             }
 
