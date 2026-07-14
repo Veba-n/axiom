@@ -62,8 +62,7 @@ pub fn bake_texture_to_image(ctx: &egui::Context, comp: &ComposedTexture) -> egu
     let img_width = (comp.width as usize * char_width).max(1);
     let img_height = (comp.height as usize * char_height).max(1);
 
-    let bg_color = egui::Color32::from_rgb(comp.base_color[0], comp.base_color[1], comp.base_color[2]);
-    let mut img = egui::ColorImage::new([img_width, img_height], bg_color);
+    let mut img = egui::ColorImage::new([img_width, img_height], egui::Color32::TRANSPARENT);
 
     ctx.fonts(|f| {
         let atlas = f.image();
@@ -105,10 +104,17 @@ pub fn bake_texture_to_image(ctx: &egui::Context, comp: &ComposedTexture) -> egu
                                         let img_idx = (dest_y + y) * img_width + (dest_x + x);
                                         if img_idx < img.pixels.len() {
                                             let current = img.pixels[img_idx];
-                                            let r = (fg.r() as f32 * final_alpha + current.r() as f32 * (1.0 - final_alpha)) as u8;
-                                            let g = (fg.g() as f32 * final_alpha + current.g() as f32 * (1.0 - final_alpha)) as u8;
-                                            let b = (fg.b() as f32 * final_alpha + current.b() as f32 * (1.0 - final_alpha)) as u8;
-                                            img.pixels[img_idx] = egui::Color32::from_rgb(r, g, b);
+                                            
+                                            let src_a = final_alpha;
+                                            let dst_a = current.a() as f32 / 255.0;
+                                            let out_a = src_a + dst_a * (1.0 - src_a);
+                                            
+                                            if out_a > 0.0 {
+                                                let r = (fg.r() as f32 * src_a + current.r() as f32 * dst_a * (1.0 - src_a)) / out_a;
+                                                let g = (fg.g() as f32 * src_a + current.g() as f32 * dst_a * (1.0 - src_a)) / out_a;
+                                                let b = (fg.b() as f32 * src_a + current.b() as f32 * dst_a * (1.0 - src_a)) / out_a;
+                                                img.pixels[img_idx] = egui::Color32::from_rgba_unmultiplied(r as u8, g as u8, b as u8, (out_a * 255.0) as u8);
+                                            }
                                         }
                                     }
                                 }

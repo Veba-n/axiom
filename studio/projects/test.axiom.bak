@@ -1053,7 +1053,7 @@
           "modifiers": [],
           "faces": {
             "All": {
-              "texture_id": "Tex_2",
+              "texture_id": "Tex_1",
               "tint": [
                 200,
                 200,
@@ -3372,14 +3372,14 @@
   "selected_part_id": "Part_1",
   "windowed_panels": [],
   "camera_rot": [
-    1.2734375,
-    3199.5625
+    -0.56640625,
+    3481.7793
   ],
   "camera_pan": [
-    -22.167969,
-    247.46484
+    189.34766,
+    20.21875
   ],
-  "camera_zoom": 230.0,
+  "camera_zoom": 285.41367,
   "camera_ortho": false,
   "show_gizmo": false
 }

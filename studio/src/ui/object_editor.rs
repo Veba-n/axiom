@@ -1165,11 +1165,12 @@ let mut all_faces = Vec::new();
                 is_subtract: bool,
                 part_ref: &'a ObjectPart,
                 aabb: ([f32; 3], [f32; 3]),
+                part_index: usize,
             }
             let mut volumes = Vec::new();
             let mut cached_part_faces = std::collections::HashMap::new();
 
-            for part in &obj.parts {
+            for (part_index, part) in obj.parts.iter().enumerate() {
                 if !part.is_visible { continue; }
                 
                 let eval_v = evaluated_parts.get(&part.id).unwrap();
@@ -1256,7 +1257,7 @@ let mut all_faces = Vec::new();
                             }
                         }
                     }
-                    volumes.push(Volume { planes, part_id: part.id.clone(), target_id: part.csg_target_id.clone(), is_subtract: part.boolean_op == BooleanOp::Subtract, part_ref: part, aabb: (min, max) });
+                    volumes.push(Volume { planes, part_id: part.id.clone(), target_id: part.csg_target_id.clone(), is_subtract: part.boolean_op == BooleanOp::Subtract, part_ref: part, aabb: (min, max), part_index });
                 }
                 cached_part_faces.insert(part.id.clone(), faces);
             }
@@ -1566,7 +1567,7 @@ let mut all_faces = Vec::new();
                                 
                             if !overlap { continue; }
                             
-                            let mut inner_wall = intersect_convex(&initial_poly, &vol.planes);
+                            let inner_wall = intersect_convex(&initial_poly, &vol.planes);
                             if !inner_wall.is_empty() {
                                 // İç duvarları DİĞER deliklerden (Holes) çıkar (Crossing-wall hatası çözümü!)
                                 let mut inner_polys = vec![inner_wall];
@@ -1600,7 +1601,7 @@ let mut all_faces = Vec::new();
                                             poly_3d,
                                             original_3d: None,
                                             face_id, 
-                                            part_index,
+                                            part_index: vol.part_index,
                                             shading: final_shading, 
                                             wire_stroke: egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(0, 0, 0, 50)), 
                                             destroyed_ratio: 0.0,
@@ -1933,12 +1934,16 @@ let mut all_faces = Vec::new();
                         let has_texture = !mat.texture_id.is_empty() && tex_cache.get(&mat.texture_id).is_some();
                         
                         if has_texture {
-                            // Doku varsa in.color olarak BEYAZ veriyoruz!
-                            // Çünkü TextureComposer zaten arka plan rengini ColorImage içine gömdü (bake etti).
-                            // Eğer burada comp.base_color verirsek, Shader içinde (tex_color * in.color) 
-                            // işlemi iki kez renk çarpımı (kare alma) yapar. Özellikle siyah arka planlarda
-                            // sonuç PITCH BLACK (Simsiyah) çıkar!
-                            [1.0, 1.0, 1.0, mat.opacity]
+                            // Doku varsa bile artık Shader'ımızda "Transparent Blending" yapıyoruz!
+                            // Bu yüzden in.color olarak dokunun kendi arkaplan rengini veya
+                            // kullanıcının seçtiği mat.background_color'ı gönderiyoruz.
+                            if mat.use_custom_bg {
+                                [bg[0] as f32 / 255.0, bg[1] as f32 / 255.0, bg[2] as f32 / 255.0, mat.opacity]
+                            } else {
+                                let comp = tex_cache.get(&mat.texture_id).unwrap();
+                                let c = comp.base_color;
+                                [c[0] as f32 / 255.0, c[1] as f32 / 255.0, c[2] as f32 / 255.0, mat.opacity]
+                            }
                         } else {
                             if mat.use_custom_bg {
                                 [bg[0] as f32 / 255.0, bg[1] as f32 / 255.0, bg[2] as f32 / 255.0, mat.opacity]
@@ -2008,8 +2013,35 @@ let mut all_faces = Vec::new();
                         }
                     }
                     
-                    let uv_scale_x = mat.uv_scale[0];
-                    let uv_scale_y = mat.uv_scale[1];
+                    let mut tw = 1;
+                    let mut th = 1;
+                    if let Some(comp) = app.texture_cache.get(&mat.texture_id) {
+                        tw = comp.width.max(1);
+                        th = comp.height.max(1);
+                    }
+                    
+                    let sel_idx = app.selected_index.unwrap_or(0);
+                    let part = &app.objects[sel_idx].parts[face.part_index];
+                    let (obj_scale_x, obj_scale_y) = if face.face_id.contains("Z") {
+                        (part.scale[0], part.scale[1])
+                    } else if face.face_id.contains("X") {
+                        (part.scale[2], part.scale[1])
+                    } else if face.face_id.contains("Y") {
+                        (part.scale[0], part.scale[2])
+                    } else {
+                        (1.0, 1.0)
+                    };
+                    
+                    let base_density = tw.max(th) as f32;
+                    let uv_mul = mat.uv_scale[0].max(mat.uv_scale[1]).max(0.01);
+                    let density = base_density * uv_mul;
+                    
+                    let face_w = if mat.auto_tile { obj_scale_x.abs() } else { 1.0 };
+                    let face_h = if mat.auto_tile { obj_scale_y.abs() } else { 1.0 };
+                    
+                    let uv_scale_x = density * face_w / (tw as f32);
+                    let uv_scale_y = density * face_h / (th as f32);
+                    
                     let calc_uv = |pos: [f32; 3]| -> [f32; 2] {
                         let p_vec = [pos[0]-w0[0], pos[1]-w0[1], pos[2]-w0[2]];
                         let u = (p_vec[0]*vec_x[0] + p_vec[1]*vec_x[1] + p_vec[2]*vec_x[2]) / len_x_sq;

@@ -75,7 +75,7 @@ impl eframe::egui_wgpu::CallbackTrait for Custom3dCallback {
         if create_fallback {
             let mut manager = TextureManager::default();
             if let Some(pipeline) = resources.get::<Custom3dPipeline>() {
-                manager.update_texture(device, queue, "fallback", &egui::ColorImage::new([1, 1], egui::Color32::WHITE), &pipeline.texture_bind_group_layout);
+                manager.update_texture(device, queue, "fallback", &egui::ColorImage::new([1, 1], egui::Color32::TRANSPARENT), &pipeline.texture_bind_group_layout);
             }
             resources.insert(manager);
         }

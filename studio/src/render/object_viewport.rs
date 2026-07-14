@@ -243,20 +243,6 @@ pub fn draw_face_quad(
                     edges.push(edges[0]);
                     painter.add(egui::Shape::line(edges, egui::Stroke::new(2.0, egui::Color32::RED)));
                 }
-            } else {
-                if !mat.texture_id.is_empty() {
-                    let center = egui::pos2(
-                        (screen_poly[0].x + screen_poly[2].x) * 0.5,
-                        (screen_poly[0].y + screen_poly[2].y) * 0.5,
-                    );
-                    painter.text(
-                        center,
-                        egui::Align2::CENTER_CENTER,
-                        "?",
-                        egui::FontId::proportional(12.0),
-                        egui::Color32::YELLOW,
-                    );
-                }
             }
         }
     }

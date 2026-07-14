@@ -32,5 +32,8 @@ fn vs_main(model: VertexInput) -> VertexOutput {
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let tex_color = textureSample(t_diffuse, s_diffuse, in.uv);
-    return tex_color * in.color;
+    // Doku tamamen şeffafsa (örn. boş hücreler veya fallback), in.color'u arka plan olarak kullan
+    // Eğer doku varsa, dokunun rengini arka planın üzerine çiz.
+    let final_rgb = mix(in.color.rgb, tex_color.rgb, tex_color.a);
+    return vec4<f32>(final_rgb, in.color.a);
 }
