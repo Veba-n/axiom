@@ -67,7 +67,7 @@ pub fn bake_texture_to_image(ctx: &egui::Context, comp: &ComposedTexture) -> egu
     ctx.fonts(|f| {
         let atlas = f.image();
         let atlas_w = atlas.width();
-        let atlas_h = atlas.height();
+        let _atlas_h = atlas.height();
 
         for ty in 0..comp.height {
             for tx in 0..comp.width {

@@ -68,20 +68,26 @@ pub fn split_poly(poly: &[Vertex], plane: &Plane, is_subtract_vol: bool) -> (Vec
         // Açı (Normal) hesabı yaparak kaymaları ve Z-fighting hatalarını önle.
         let mut dot = 0.0;
         if poly.len() >= 3 {
-            let p0 = poly[0].pos; let p1 = poly[1].pos; let p2 = poly[2].pos;
-            let v1 = [p1[0]-p0[0], p1[1]-p0[1], p1[2]-p0[2]];
-            let v2 = [p2[0]-p0[0], p2[1]-p0[1], p2[2]-p0[2]];
-            let nx = v1[1]*v2[2] - v1[2]*v2[1];
-            let ny = v1[2]*v2[0] - v1[0]*v2[2];
-            let nz = v1[0]*v2[1] - v1[1]*v2[0];
+            let mut nx = 0.0; let mut ny = 0.0; let mut nz = 0.0;
+            for i in 0..poly.len() {
+                let v1 = poly[i].pos;
+                let v2 = poly[(i + 1) % poly.len()].pos;
+                nx += (v1[1] - v2[1]) * (v1[2] + v2[2]);
+                ny += (v1[2] - v2[2]) * (v1[0] + v2[0]);
+                nz += (v1[0] - v2[0]) * (v1[1] + v2[1]);
+            }
             dot = nx * plane.n[0] + ny * plane.n[1] + nz * plane.n[2];
         }
         
-        if dot > 0.0 && is_subtract_vol {
-            // Normaller aynı yöne bakıyor VE kesen obje bir DELİK (-). O zaman sil.
+        let same_facing = dot > 0.0;
+        
+        if (is_subtract_vol && same_facing) || (!is_subtract_vol && !same_facing) {
+            // 1. Kesen obje DELİK (-) ve aynı yöne bakıyor (Flush from inside): Yüzeyi sil, delik oluşsun.
+            // 2. İkisi de KATI (+) ve zıt yöne bakıyor (Face-to-face contact): Yüzeyi sil, kesintisiz birleşsinler (Union).
             return (Vec::new(), poly.to_vec());
         } else {
-            // Normaller zıt yönde veya objelerin ikisi de KATI (+). Silme, üst üste çizilsin! (Z-fighting korunması)
+            // 1. Kesen obje DELİK (-) ve zıt yöne bakıyor (Touching from outside): Yüzeyi koru, delik dışarıda.
+            // 2. İkisi de KATI (+) ve aynı yöne bakıyor (Flush solids): Yüzeyi koru (Z-fighting olur ama delik açılmaz).
             return (poly.to_vec(), Vec::new());
         }
     }

@@ -184,6 +184,7 @@ pub fn draw_face_quad(
     show_uv_dots: bool,
     show_outer_shell: bool,
     texture_debug: bool,
+    debug_depth_color: Option<f32>,
 ) {
     // Outer Shell (CSG Hata Ayıklama) Modu
     if show_outer_shell {
@@ -225,44 +226,9 @@ pub fn draw_face_quad(
     match shading {
         ShadingMode::Wireframe => {}
         ShadingMode::Solid => {
-            let bg = egui::Color32::from_rgb(final_bg_color[0], final_bg_color[1], final_bg_color[2]);
-            let fill = if composed.is_some() {
-                egui::Color32::from_rgba_unmultiplied(
-                    base_fill.r(),
-                    base_fill.g(),
-                    base_fill.b(),
-                    (210.0 * mat.opacity) as u8,
-                )
-            } else {
-                egui::Color32::from_rgba_unmultiplied(
-                    base_fill.r(),
-                    base_fill.g(),
-                    base_fill.b(),
-                    (200.0 * mat.opacity) as u8,
-                )
-            };
-            if screen_poly.len() >= 3 {
-                // To support > 4 corners for solid CSG shape
-                let mut mesh = egui::Mesh::default();
-                let start_idx = mesh.vertices.len() as u32;
-                for p in screen_poly {
-                    mesh.vertices.push(egui::epaint::Vertex { pos: *p, uv: egui::Pos2::ZERO, color: bg });
-                }
-                for i in 1..(screen_poly.len() - 1) {
-                    mesh.add_triangle(start_idx, start_idx + i as u32, start_idx + i as u32 + 1);
-                }
-                painter.add(egui::Shape::mesh(mesh));
-                
-                let mut mesh_fill = egui::Mesh::default();
-                let start_idx_f = mesh_fill.vertices.len() as u32;
-                for p in screen_poly {
-                    mesh_fill.vertices.push(egui::epaint::Vertex { pos: *p, uv: egui::Pos2::ZERO, color: fill });
-                }
-                for i in 1..(screen_poly.len() - 1) {
-                    mesh_fill.add_triangle(start_idx_f, start_idx_f + i as u32, start_idx_f + i as u32 + 1);
-                }
-                painter.add(egui::Shape::mesh(mesh_fill));
-            }
+            // GPU Katı Çizim Hattı (solid_pipeline) zaten depth-test ile bu yüzeyleri doldurdu!
+            // CPU üzerinde tekrar yarı saydam bir dolgu çizmek, depth buffer'ı bypass ederek X-Ray ghosting hatalarına yol açar.
+            // Bu yüzden CPU üzerinde Solid dolgusu çizmeyi bıraktık.
         }
         ShadingMode::Textured => {
             if let (Some(comp), Some(tex_handle)) = (composed, handle) {
@@ -271,7 +237,7 @@ pub fn draw_face_quad(
                 let uv_poly = original_screen_poly.unwrap_or(screen_poly);
                 let v0 = if uv_poly.len() > 0 { uv_poly[0] } else { egui::Pos2::ZERO };
                 let v1 = if uv_poly.len() > 1 { uv_poly[1] } else { v0 };
-                let v2 = if uv_poly.len() > 2 { uv_poly[2] } else { v0 };
+                let _v2 = if uv_poly.len() > 2 { uv_poly[2] } else { v0 };
                 let v3 = if uv_poly.len() > 3 { uv_poly[3] } else { v0 };
 
                 let (obj_scale_x, obj_scale_y) = if face_id.contains("Z") {
@@ -298,12 +264,21 @@ pub fn draw_face_quad(
 
                 // ColorImage'in kendi arka plan rengi olduğu için sadece beyazla çarpıyoruz.
                 // Eğer opacity varsa, unmultiplied olarak geçiyoruz.
-                let color = egui::Color32::from_rgba_unmultiplied(
+                let mut color = egui::Color32::from_rgba_unmultiplied(
                     255,
                     255,
                     255,
                     (255.0 * mat.opacity) as u8,
                 );
+                
+                if let Some(depth_ratio) = debug_depth_color {
+                    let v = (depth_ratio.clamp(0.0, 1.0) * 255.0) as u8;
+                    color = egui::Color32::from_rgba_unmultiplied(
+                        v, v, v,
+                        (255.0 * mat.opacity) as u8,
+                    );
+                }
+
 
                 // CSG kesilmeleri (clipping) için 4 köşe yerine orijinal face üzerinden UV buluyoruz
                 let vec_x = v1 - v0;
@@ -353,7 +328,7 @@ pub fn draw_face_quad(
 
                 // Texture Debug (Hücre ızgarasından kaçtık, sadece kırmızı sınırları çiziyoruz)
                 if texture_debug {
-                    let debug_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgba_unmultiplied(255, 0, 0, 150));
+                    let _debug_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgba_unmultiplied(255, 0, 0, 150));
                     let mut edges = screen_poly.to_vec();
                     edges.push(edges[0]);
                     painter.add(egui::Shape::line(edges, egui::Stroke::new(2.0, egui::Color32::RED)));
@@ -388,12 +363,6 @@ pub fn draw_face_quad(
     }
 
     if shading == ShadingMode::Wireframe || shading == ShadingMode::Solid || shading == ShadingMode::Textured {
-        if screen_poly.len() >= 3 {
-            let mut edge_points = screen_poly.to_vec();
-            edge_points.push(screen_poly[0]);
-            painter.add(egui::Shape::line(edge_points, wire_stroke));
-        }
-
         if show_uv_dots {
             for p in screen_poly.iter() {
                 // UV veya köşe noktalarını yeşil (CSG) olarak göster

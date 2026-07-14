@@ -650,15 +650,72 @@ pub fn show(app: &mut AxiomStudio, ctx: &egui::Context) {
                 ui.data_mut(|d| d.insert_temp(egui::Id::new("show_uv_dots"), show_uv_dots));
             }
 
-            let mut show_outer_shell = ui.data_mut(|d| d.get_temp(egui::Id::new("show_outer_shell")).unwrap_or(false));
-            if ui.checkbox(&mut show_outer_shell, "Dış Kabuğu (Air Contact) Göster").changed() {
-                ui.data_mut(|d| d.insert_temp(egui::Id::new("show_outer_shell"), show_outer_shell));
-            }
+            ui.menu_button("🛠 Hata Ayıklama (Debug)", |ui| {
+                let mut show_outer_shell = ui.data_mut(|d| d.get_temp(egui::Id::new("show_outer_shell")).unwrap_or(false));
+                if ui.checkbox(&mut show_outer_shell, "Dış Kabuğu (Air Contact) Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("show_outer_shell"), show_outer_shell));
+                }
 
-            let mut texture_debug = ui.data_mut(|d| d.get_temp(egui::Id::new("texture_debug")).unwrap_or(false));
-            if ui.checkbox(&mut texture_debug, "Texture Debug Modu").changed() {
-                ui.data_mut(|d| d.insert_temp(egui::Id::new("texture_debug"), texture_debug));
-            }
+                let mut debug_wireframe_only = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_wireframe_only")).unwrap_or(false));
+                if ui.checkbox(&mut debug_wireframe_only, "Sadece Tel Kafesleri Göster (Kaplamaları Gizle)").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_wireframe_only"), debug_wireframe_only));
+                }
+
+                let mut texture_debug = ui.data_mut(|d| d.get_temp(egui::Id::new("texture_debug")).unwrap_or(false));
+                if ui.checkbox(&mut texture_debug, "Texture Debug Modu").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("texture_debug"), texture_debug));
+                }
+
+                let mut show_gpu_triangles = ui.data_mut(|d| d.get_temp(egui::Id::new("show_gpu_triangles")).unwrap_or(false));
+                if ui.checkbox(&mut show_gpu_triangles, "GPU Üçgenlerini (Triangulation) Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("show_gpu_triangles"), show_gpu_triangles));
+                }
+
+                let mut debug_culling = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_culling")).unwrap_or(false));
+                if ui.checkbox(&mut debug_culling, "Kırpılan Yüzeyleri (Culled) Kırmızı Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_culling"), debug_culling));
+                }
+
+                let mut debug_normals = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_normals")).unwrap_or(false));
+                if ui.checkbox(&mut debug_normals, "Yüzey Normallerini Çiz").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_normals"), debug_normals));
+                }
+
+                let mut debug_inner_walls = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_inner_walls")).unwrap_or(false));
+                if ui.checkbox(&mut debug_inner_walls, "İç Duvarları (Inner Walls) Pembe Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_inner_walls"), debug_inner_walls));
+                }
+                
+                let mut debug_z_depth = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_z_depth")).unwrap_or(false));
+                if ui.checkbox(&mut debug_z_depth, "Z-Derinlik (Depth) Değerlerini Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_z_depth"), debug_z_depth));
+                }
+
+                let mut debug_depth_color = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_depth_color")).unwrap_or(false));
+                if ui.checkbox(&mut debug_depth_color, "Kameraya Uzaklığa Göre Renklendir (Depth Shading)").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_depth_color"), debug_depth_color));
+                }
+
+                let mut debug_coplanar = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_coplanar")).unwrap_or(false));
+                if ui.checkbox(&mut debug_coplanar, "Coplanar (Aynı Düzlem) Yüzeyleri Renklendir").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_coplanar"), debug_coplanar));
+                }
+                
+                let mut debug_draw_order = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_draw_order")).unwrap_or(false));
+                if ui.checkbox(&mut debug_draw_order, "Çizim Sırasını (Painter Index) Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_draw_order"), debug_draw_order));
+                }
+                
+                let mut debug_labels = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_labels")).unwrap_or(false));
+                if ui.checkbox(&mut debug_labels, "Parça ve Yüzey ID Etiketlerini Göster").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_labels"), debug_labels));
+                }
+                
+                let mut debug_wireframe = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_wireframe")).unwrap_or(false));
+                if ui.checkbox(&mut debug_wireframe, "Tüm Yüzeylerin Tel Kafesini (Wireframe) Çiz").changed() {
+                    ui.data_mut(|d| d.insert_temp(egui::Id::new("debug_wireframe"), debug_wireframe));
+                }
+            });
 
             if ui.button("Kamerayı Sıfırla (Reset View)").clicked() {
                 app.camera_rot[0] = 30.0;
@@ -1095,6 +1152,9 @@ struct FaceToDraw<'a> {
     wire_stroke: egui::Stroke,
     destroyed_ratio: f32,
     triangles: &'a [usize],
+    is_culled: bool,
+    normal: [f32; 3],
+    is_inner_wall: bool,
 }
 let mut all_faces = Vec::new();
             
@@ -1104,6 +1164,7 @@ let mut all_faces = Vec::new();
                 target_id: Option<String>,
                 is_subtract: bool,
                 part_ref: &'a ObjectPart,
+                aabb: ([f32; 3], [f32; 3]),
             }
             let mut volumes = Vec::new();
             let mut cached_part_faces = std::collections::HashMap::new();
@@ -1168,13 +1229,34 @@ let mut all_faces = Vec::new();
 
                 let faces = get_part_polygons(&part.shape, &mut transform_world);
                 if !faces.is_empty() {
-                    let mut planes = Vec::new();
+                    let mut planes: Vec<crate::render::csg::Plane> = Vec::new();
+                    let mut min = [f32::MAX; 3];
+                    let mut max = [f32::MIN; 3];
                     for face in &faces {
+                        for v in &face.verts {
+                            if v[0] < min[0] { min[0] = v[0]; }
+                            if v[1] < min[1] { min[1] = v[1]; }
+                            if v[2] < min[2] { min[2] = v[2]; }
+                            if v[0] > max[0] { max[0] = v[0]; }
+                            if v[1] > max[1] { max[1] = v[1]; }
+                            if v[2] > max[2] { max[2] = v[2]; }
+                        }
                         if face.verts.len() >= 3 {
-                            planes.push(make_plane(face.verts[0], face.verts[1], face.verts[2]));
+                            let p = make_plane(face.verts[0], face.verts[1], face.verts[2]);
+                            let mut exists = false;
+                            for ep in &planes {
+                                let dot = ep.n[0]*p.n[0] + ep.n[1]*p.n[1] + ep.n[2]*p.n[2];
+                                if dot > 0.999 && (ep.d - p.d).abs() < 0.001 {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if !exists {
+                                planes.push(p);
+                            }
                         }
                     }
-                    volumes.push(Volume { planes, part_id: part.id.clone(), target_id: part.csg_target_id.clone(), is_subtract: part.boolean_op == BooleanOp::Subtract, part_ref: part });
+                    volumes.push(Volume { planes, part_id: part.id.clone(), target_id: part.csg_target_id.clone(), is_subtract: part.boolean_op == BooleanOp::Subtract, part_ref: part, aabb: (min, max) });
                 }
                 cached_part_faces.insert(part.id.clone(), faces);
             }
@@ -1377,6 +1459,27 @@ let mut all_faces = Vec::new();
                             
                             let mut next_polys = Vec::new();
                             for p in polys {
+                                let mut p_min = [f32::MAX; 3];
+                                let mut p_max = [f32::MIN; 3];
+                                for v in &p {
+                                    if v.pos[0] < p_min[0] { p_min[0] = v.pos[0]; }
+                                    if v.pos[1] < p_min[1] { p_min[1] = v.pos[1]; }
+                                    if v.pos[2] < p_min[2] { p_min[2] = v.pos[2]; }
+                                    if v.pos[0] > p_max[0] { p_max[0] = v.pos[0]; }
+                                    if v.pos[1] > p_max[1] { p_max[1] = v.pos[1]; }
+                                    if v.pos[2] > p_max[2] { p_max[2] = v.pos[2]; }
+                                }
+                                
+                                let overlap = 
+                                    p_min[0] <= vol.aabb.1[0] + 0.01 && p_max[0] >= vol.aabb.0[0] - 0.01 &&
+                                    p_min[1] <= vol.aabb.1[1] + 0.01 && p_max[1] >= vol.aabb.0[1] - 0.01 &&
+                                    p_min[2] <= vol.aabb.1[2] + 0.01 && p_max[2] >= vol.aabb.0[2] - 0.01;
+                                    
+                                if !overlap {
+                                    next_polys.push(p);
+                                    continue;
+                                }
+
                                 let (outside_parts, inside_part) = crate::render::csg::subtract_convex(&p, &vol.planes, vol.is_subtract);
                                 next_polys.extend(outside_parts);
                                 
@@ -1427,7 +1530,9 @@ let mut all_faces = Vec::new();
                         let intersect_convex = |poly: &[crate::render::csg::Vertex], planes: &[crate::render::csg::Plane]| -> Vec<crate::render::csg::Vertex> {
                             let mut current = poly.to_vec();
                             for plane in planes {
-                                let (_, inside) = crate::render::csg::split_poly(&current, plane, false);
+                                // inner wall testi: Solid plane'lerine karşı test ediyoruz ama coplanar 
+                                // yüzeylerin dışarıda sayılması (silinmesi) için is_subtract_vol = true geçiyoruz.
+                                let (_, inside) = crate::render::csg::split_poly(&current, plane, true);
                                 if inside.is_empty() { return Vec::new(); }
                                 current = inside;
                             }
@@ -1443,14 +1548,47 @@ let mut all_faces = Vec::new();
                                 if target != &vol.part_id { continue; }
                             }
                             
+                            let mut p_min = [f32::MAX; 3];
+                            let mut p_max = [f32::MIN; 3];
+                            for v in &initial_poly {
+                                if v.pos[0] < p_min[0] { p_min[0] = v.pos[0]; }
+                                if v.pos[1] < p_min[1] { p_min[1] = v.pos[1]; }
+                                if v.pos[2] < p_min[2] { p_min[2] = v.pos[2]; }
+                                if v.pos[0] > p_max[0] { p_max[0] = v.pos[0]; }
+                                if v.pos[1] > p_max[1] { p_max[1] = v.pos[1]; }
+                                if v.pos[2] > p_max[2] { p_max[2] = v.pos[2]; }
+                            }
+                            
+                            let overlap = 
+                                p_min[0] <= vol.aabb.1[0] + 0.01 && p_max[0] >= vol.aabb.0[0] - 0.01 &&
+                                p_min[1] <= vol.aabb.1[1] + 0.01 && p_max[1] >= vol.aabb.0[1] - 0.01 &&
+                                p_min[2] <= vol.aabb.1[2] + 0.01 && p_max[2] >= vol.aabb.0[2] - 0.01;
+                                
+                            if !overlap { continue; }
+                            
                             let mut inner_wall = intersect_convex(&initial_poly, &vol.planes);
                             if !inner_wall.is_empty() {
-                                // İç duvarların görünmesi için yüzey yönünü TERSİNE çevir (Arka yüzey sorunu çözümü)
-                                inner_wall.reverse();
-                                if inner_wall.len() >= 3 {
+                                // İç duvarları DİĞER deliklerden (Holes) çıkar (Crossing-wall hatası çözümü!)
+                                let mut inner_polys = vec![inner_wall];
+                                for other_vol in &volumes {
+                                    if !other_vol.is_subtract { continue; }
+                                    if other_vol.part_id == part.id { continue; } // Kendi deliğimizden çıkarma
+                                    
+                                    let mut next_inner = Vec::new();
+                                    for p in inner_polys {
+                                        let (outside, _) = crate::render::csg::subtract_convex(&p, &other_vol.planes, true);
+                                        next_inner.extend(outside);
+                                    }
+                                    inner_polys = next_inner;
+                                }
+                                
+                                for mut p_wall in inner_polys {
+                                    // İç duvarların görünmesi için yüzey yönünü TERSİNE çevir (Arka yüzey sorunu çözümü)
+                                    p_wall.reverse();
+                                    if p_wall.len() >= 3 {
                                     // Inner Wall Caching
-                                    let mut poly_3d = Vec::with_capacity(inner_wall.len());
-                                    for v in &inner_wall {
+                                    let mut poly_3d = Vec::with_capacity(p_wall.len());
+                                    for v in &p_wall {
                                         if !v.pos[0].is_finite() || !v.pos[1].is_finite() || !v.pos[2].is_finite() { continue; }
                                         poly_3d.push(v.pos);
                                     }
@@ -1470,6 +1608,7 @@ let mut all_faces = Vec::new();
                                         });
                                     }
                                 }
+                            }
                             }
                         }
                         
@@ -1553,6 +1692,8 @@ let mut all_faces = Vec::new();
             }
         }
 
+        let debug_culling = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_culling")).unwrap_or(false));
+        
         // --- KAMERA OLUŞTURMA VE PROJEKSİYON DÖNGÜSÜ (CSG'DEN BAĞIMSIZ) ---
         for cface in &final_3d_faces {
             let part = &obj.parts[cface.part_index];
@@ -1560,20 +1701,45 @@ let mut all_faces = Vec::new();
             
             let use_fill = matches!(cface.shading, ShadingMode::Solid | ShadingMode::Textured);
             
+            let mut is_culled = false;
+            let mut face_normal = [0.0, 0.0, 1.0];
+            
             // CSG SONRASI ARKA YÜZ KIRPMA (Back-Face Culling)
             // CSG kesme işlemi cface.poly_3d winding order'ını (saat yönünü) bozabilir.
             // Bu yüzden normali kararlı olan original_3d'den (orijinal kesilmemiş yüzey) hesaplıyoruz.
             if use_fill {
                 let poly = cface.original_3d.as_deref().unwrap_or(&cface.poly_3d);
                 if poly.len() >= 3 {
-                    let v0 = poly[0]; let v1 = poly[1]; let v2 = poly[2];
-                    let e1 = [v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]];
-                    let e2 = [v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]];
-                    let nx = e1[1]*e2[2] - e1[2]*e2[1];
-                    let ny = e1[2]*e2[0] - e1[0]*e2[2];
-                    let nz = e1[0]*e2[1] - e1[1]*e2[0];
-                    let dot = nx * view_dir[0] + ny * view_dir[1] + nz * view_dir[2];
-                    if dot < 0.0 { continue; } // Kameraya arkasını dönen yüzeyleri atla
+                    let mut nx = 0.0; let mut ny = 0.0; let mut nz = 0.0;
+                    for i in 0..poly.len() {
+                        let v1 = poly[i];
+                        let v2 = poly[(i + 1) % poly.len()];
+                        nx += (v1[1] - v2[1]) * (v1[2] + v2[2]);
+                        ny += (v1[2] - v2[2]) * (v1[0] + v2[0]);
+                        nz += (v1[0] - v2[0]) * (v1[1] + v2[1]);
+                    }
+                    let len = (nx*nx + ny*ny + nz*nz).sqrt();
+                    if len > 1e-5 {
+                        nx /= len; ny /= len; nz /= len;
+                    }
+                    
+                    face_normal = [nx, ny, nz];
+                    // Kameranın world space'deki bakış yönü (Kamera -Z'den +Z'ye bakar, dönmeleri uygularız)
+                    // _cx_rad ve _cy_rad, kameranın Y ve X eksenindeki dönüşleridir (Euler)
+                    // View vector = Camera Forward Vector
+                    let view_x = -_cy_rad.sin() * _cx_rad.cos();
+                    let view_y = _cx_rad.sin();
+                    let view_z = _cy_rad.cos() * _cx_rad.cos();
+                    
+                    let dot = nx * view_x + ny * view_y + nz * view_z;
+                    // Axiom'da küp yüzeyleri içeri bakacak şekilde (CW) tanımlandığı için normal vektörü İÇERİ doğru!
+                    // İçe bakan bir normal, kameraya 'ters' (aynı yönde) ise aslında 'ÖN YÜZ'dür!
+                    // İçe bakan bir normal, kameraya doğru bakıyorsa aslında 'ARKA YÜZ'dür!
+                    // dot < 0 (Kameraya bakıyor) -> ARKA YÜZ -> CULL EDİLMELİ!
+                    if dot < 0.0 {
+                        is_culled = true;
+                        if !debug_culling { continue; } // Arka yüzeyleri atla (CPU Painter'da ghosting'i önler)
+                    }
                 }
             }
 
@@ -1591,12 +1757,14 @@ let mut all_faces = Vec::new();
             // Yüzeyin yatay olup olmadığını kontrol et (normal yönü Y aksına yakın mı?)
             let poly = cface.original_3d.as_deref().unwrap_or(&cface.poly_3d);
             let is_horizontal = if poly.len() >= 3 {
-                let v0 = poly[0]; let v1 = poly[1]; let v2 = poly[2];
-                let e1 = [v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]];
-                let e2 = [v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]];
-                let nx = e1[1]*e2[2] - e1[2]*e2[1];
-                let ny = e1[2]*e2[0] - e1[0]*e2[2];
-                let nz = e1[0]*e2[1] - e1[1]*e2[0];
+                let mut nx = 0.0; let mut ny = 0.0; let mut nz = 0.0;
+                for i in 0..poly.len() {
+                    let v1 = poly[i];
+                    let v2 = poly[(i + 1) % poly.len()];
+                    nx += (v1[1] - v2[1]) * (v1[2] + v2[2]);
+                    ny += (v1[2] - v2[2]) * (v1[0] + v2[0]);
+                    nz += (v1[0] - v2[0]) * (v1[1] + v2[1]);
+                }
                 let len = (nx*nx + ny*ny + nz*nz).sqrt();
                 len > 1e-5 && ny.abs() > 0.9 * len
             } else {
@@ -1652,6 +1820,9 @@ let mut all_faces = Vec::new();
                 wire_stroke: cface.wire_stroke,
                 destroyed_ratio: cface.destroyed_ratio,
                 triangles: &cface.triangles,
+                is_culled,
+                normal: face_normal,
+                is_inner_wall: cface.original_3d.is_none(),
             });
             
         }
@@ -1702,6 +1873,17 @@ let mut all_faces = Vec::new();
         
         let show_uv_dots = ui.data_mut(|d| d.get_temp(egui::Id::new("show_uv_dots")).unwrap_or(false));
         let show_outer_shell = ui.data_mut(|d| d.get_temp(egui::Id::new("show_outer_shell")).unwrap_or(false));
+        let show_gpu_triangles = ui.data_mut(|d| d.get_temp(egui::Id::new("show_gpu_triangles")).unwrap_or(false));
+        let debug_wireframe_only = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_wireframe_only")).unwrap_or(false));
+        let debug_depth_color = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_depth_color")).unwrap_or(false));
+        
+        let mut min_z_all = f32::MAX;
+        let mut max_z_all = f32::MIN;
+        for face in &all_faces {
+            if face.z_depth < min_z_all { min_z_all = face.z_depth; }
+            if face.z_depth > max_z_all { max_z_all = face.z_depth; }
+        }
+        let z_range = (max_z_all - min_z_all).max(0.001);
         
         // ----------------------------------------------------
         // --- GPU (WGPU) ÇİZİM AKTARIMI (3000 FPS GEÇİŞİ) ---
@@ -1771,9 +1953,15 @@ let mut all_faces = Vec::new();
                     let b = (hash.wrapping_mul(71) % 200 + 55) as f32 / 255.0;
                     color = [r, g, b, 1.0];
                 }
+
+                if debug_depth_color {
+                    let depth_ratio = (face.z_depth - min_z_all) / z_range;
+                    let v = depth_ratio.clamp(0.0, 1.0);
+                    color = [v, v, v, 1.0];
+                }
                 
                 // --- 1. KATI ÇİZİM (Sadece Solid/Textured objeler için üçgenleştirme) ---
-                if !matches!(face.shading, ShadingMode::Wireframe) {
+                if !matches!(face.shading, ShadingMode::Wireframe) && !debug_wireframe_only {
                     let triangles = face.triangles;
                     for i in (0..triangles.len()).step_by(3) {
                         if i + 2 < triangles.len() {
@@ -1788,12 +1976,24 @@ let mut all_faces = Vec::new();
                             solid_vertices.push(crate::render::gpu::GpuVertex { position: v0, uv: [0.0, 0.0], color });
                             solid_vertices.push(crate::render::gpu::GpuVertex { position: v1, uv: [1.0, 0.0], color });
                             solid_vertices.push(crate::render::gpu::GpuVertex { position: v2, uv: [1.0, 1.0], color });
+                            
+                            if show_gpu_triangles {
+                                let tri_color = [1.0, 1.0, 0.0, 0.8]; // Sarı üçgen çizgileri
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v0, uv: [0.0, 0.0], color: tri_color });
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v1, uv: [0.0, 0.0], color: tri_color });
+                                
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v1, uv: [0.0, 0.0], color: tri_color });
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v2, uv: [0.0, 0.0], color: tri_color });
+                                
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v2, uv: [0.0, 0.0], color: tri_color });
+                                line_vertices.push(crate::render::gpu::GpuVertex { position: v0, uv: [0.0, 0.0], color: tri_color });
+                            }
                         }
                     }
                 }
                 
                 // --- 2. ÇİZGİ ÇİZİM (Hem Solid hem Wireframe objeler için dış kenar hatları) ---
-                if !show_outer_shell {
+                if !show_outer_shell || debug_wireframe_only {
                     let sr = face.wire_stroke.color.r() as f32 / 255.0;
                     let sg = face.wire_stroke.color.g() as f32 / 255.0;
                     let sb = face.wire_stroke.color.b() as f32 / 255.0;
@@ -1865,23 +2065,105 @@ let mut all_faces = Vec::new();
         //   4. Dış Kabuk modu (show_outer_shell)
         // =====================================================
         let tex_cache = &app.texture_cache;
+        let debug_culling = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_culling")).unwrap_or(false));
+        let debug_normals = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_normals")).unwrap_or(false));
+        let debug_inner_walls = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_inner_walls")).unwrap_or(false));
+        let debug_z_depth = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_z_depth")).unwrap_or(false));
+        let debug_coplanar = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_coplanar")).unwrap_or(false));
+        let debug_labels = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_labels")).unwrap_or(false));
+        let debug_wireframe = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_wireframe")).unwrap_or(false));
+
         for face in &all_faces {
             // Dış Kabuk (Outer Shell) Modu GPU'ya taşındı! 
             if show_outer_shell {
                 continue; // GPU her şeyi benzersiz renklerle çizdi, CPU painter'a gerek yok.
             }
 
+            let screen_poly: Vec<egui::Pos2> = face.poly_3d.iter().map(|v| project_3d_with_z(v[0], v[1], v[2]).0).collect();
+            let mut cx = 0.0; let mut cy = 0.0; let mut cz = 0.0;
+            if face.poly_3d.len() > 0 {
+                for p in face.poly_3d {
+                    cx += p[0]; cy += p[1]; cz += p[2];
+                }
+                let len = face.poly_3d.len() as f32;
+                cx /= len; cy /= len; cz /= len;
+            }
+            let center_screen = project_3d_with_z(cx, cy, cz).0;
+
+            // --- HATA AYIKLAMA (DEBUG) GÖRSELLEŞTİRMELERİ ---
+            if debug_inner_walls && face.is_inner_wall {
+                if screen_poly.len() >= 3 {
+                    painter.add(egui::Shape::convex_polygon(screen_poly.clone(), egui::Color32::from_rgba_premultiplied(255, 0, 255, 50), egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 0, 255))));
+                }
+            }
+
+            if debug_culling && face.is_culled {
+                if screen_poly.len() >= 3 {
+                    painter.add(egui::Shape::convex_polygon(screen_poly.clone(), egui::Color32::from_rgba_premultiplied(255, 0, 0, 30), egui::Stroke::new(1.0, egui::Color32::RED)));
+                }
+                // Culled yüzeyin başka bir şey çizmesine gerek yok
+                continue;
+            }
+
+            // Yüzey Normallerini çiz
+            if debug_normals && face.poly_3d.len() >= 3 {
+                let n = face.normal;
+                let p1 = center_screen;
+                // Normalin ucunu kameraya doğru 1.5 birim uzat
+                let p2 = project_3d_with_z(cx + n[0]*1.5, cy + n[1]*1.5, cz + n[2]*1.5).0;
+                
+                painter.line_segment([p1, p2], egui::Stroke::new(2.0, egui::Color32::YELLOW));
+                painter.circle_filled(p1, 2.0, egui::Color32::RED);
+            }
+
+            if debug_coplanar {
+                if let Some(key) = &face.plane_key {
+                    let mut hash = 0u32;
+                    hash = hash.wrapping_mul(31).wrapping_add(key.nx as u32);
+                    hash = hash.wrapping_mul(31).wrapping_add(key.ny as u32);
+                    hash = hash.wrapping_mul(31).wrapping_add(key.nz as u32);
+                    hash = hash.wrapping_mul(31).wrapping_add(key.d as u32);
+                    
+                    let r = (hash & 0xFF) as u8;
+                    let g = ((hash >> 8) & 0xFF) as u8;
+                    let b = ((hash >> 16) & 0xFF) as u8;
+                    
+                    if screen_poly.len() >= 3 {
+                        painter.add(egui::Shape::convex_polygon(screen_poly.clone(), egui::Color32::from_rgba_premultiplied(r, g, b, 80), egui::Stroke::new(2.0, egui::Color32::from_rgb(r, g, b))));
+                    }
+                }
+            }
+
+            if debug_wireframe && screen_poly.len() >= 3 {
+                let color = if face.is_inner_wall { egui::Color32::from_rgb(255, 0, 255) } else { egui::Color32::WHITE };
+                painter.add(egui::Shape::closed_line(screen_poly.clone(), egui::Stroke::new(1.0, color)));
+            }
+
+            if debug_labels {
+                let text = format!("P:{} | F:{}", face.part_index, face.face_id);
+                let label_pos = center_screen - egui::vec2(0.0, 15.0);
+                // Draw label in the post-pass instead
+            }
+
+            if face.is_culled { continue; }
+
             // Solid ve Textured yüzeyler → Katmanlı sıralama (Painter's Algorithm) için CPU üst üste çizim
-            if matches!(face.shading, ShadingMode::Textured | ShadingMode::Solid) {
-                let screen_poly: Vec<egui::Pos2> = face.poly_3d.iter().map(|v| project_3d_with_z(v[0], v[1], v[2]).0).collect();
+            if matches!(face.shading, ShadingMode::Textured | ShadingMode::Solid) && !debug_wireframe_only {
                 let original_screen_poly: Option<Vec<egui::Pos2>> = face.original_3d.map(|orig| {
                     orig.iter().map(|v| project_3d_with_z(v[0], v[1], v[2]).0).collect()
                 });
                 let texture_debug = painter.ctx().data_mut(|d| d.get_temp(egui::Id::new("texture_debug")).unwrap_or(false));
+                
+                let depth_ratio_opt = if debug_depth_color {
+                    Some((face.z_depth - min_z_all) / z_range)
+                } else {
+                    None
+                };
+                
                 crate::render::object_viewport::draw_face_quad(
                     &painter, &screen_poly, original_screen_poly.as_deref(), &face.triangles, face.face_id, face.part,
                     tex_cache, *face.shading, face.wire_stroke,
-                    &app.viewport_camera, show_uv_dots, false, texture_debug
+                    &app.viewport_camera, show_uv_dots, false, texture_debug, depth_ratio_opt
                 );
                 // draw_face_quad zaten kenar çizgilerini ve UV dots çiziyor, devam et
                 continue;
@@ -1899,6 +2181,54 @@ let mut all_faces = Vec::new();
                 }
             }
         }
+        
+        // POST-PASS: Hata ayıklama (Debug) metinlerini en üst katmanda (z-index önceliği) çiz!
+        let debug_draw_order = ui.data_mut(|d| d.get_temp(egui::Id::new("debug_draw_order")).unwrap_or(false));
+        if debug_z_depth || debug_labels || debug_draw_order {
+            for (draw_idx, face) in all_faces.iter().enumerate() {
+                if show_outer_shell || (face.is_culled && !debug_culling) { continue; }
+                
+                let mut cx = 0.0; let mut cy = 0.0; let mut cz = 0.0;
+                if face.poly_3d.len() > 0 {
+                    for p in face.poly_3d.iter() {
+                        cx += p[0]; cy += p[1]; cz += p[2];
+                    }
+                    let len = face.poly_3d.len() as f32;
+                    cx /= len; cy /= len; cz /= len;
+                }
+                let center_screen = project_3d_with_z(cx, cy, cz).0;
+                
+                if debug_z_depth {
+                    let bg_color = egui::Color32::from_black_alpha(150);
+                    painter.rect_filled(
+                        egui::Rect::from_center_size(center_screen, egui::vec2(40.0, 16.0)),
+                        2.0, bg_color
+                    );
+                    painter.text(center_screen, egui::Align2::CENTER_CENTER, format!("{:.1}", face.z_depth), egui::FontId::proportional(12.0), egui::Color32::WHITE);
+                }
+
+                if debug_labels {
+                    let text = format!("P:{} | F:{}", face.part_index, face.face_id);
+                    let label_pos = center_screen - egui::vec2(0.0, 15.0);
+                    painter.rect_filled(
+                        egui::Rect::from_center_size(label_pos, egui::vec2(80.0, 16.0)),
+                        2.0, egui::Color32::from_black_alpha(150)
+                    );
+                    painter.text(label_pos, egui::Align2::CENTER_CENTER, text, egui::FontId::proportional(10.0), egui::Color32::GREEN);
+                }
+
+                if debug_draw_order {
+                    let text = format!("#{}", draw_idx);
+                    let label_pos = center_screen + egui::vec2(0.0, 15.0);
+                    painter.rect_filled(
+                        egui::Rect::from_center_size(label_pos, egui::vec2(40.0, 16.0)),
+                        2.0, egui::Color32::from_black_alpha(150)
+                    );
+                    painter.text(label_pos, egui::Align2::CENTER_CENTER, text, egui::FontId::proportional(12.0), egui::Color32::from_rgb(255, 200, 0));
+                }
+            }
+        }
+        
         let _t6 = std::time::Instant::now();
         
         let frame_time = t0.elapsed().as_secs_f64();
